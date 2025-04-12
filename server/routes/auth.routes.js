@@ -6,47 +6,47 @@ const User = require('../models/user'); // Replace with your User model
 const Faculty = require('../models/faculty'); // Use the Faculty model
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Save files to the 'uploads' directory
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+
+const upload = multer({ storage });
 
 // Auth routes
 router.post('/signup', async (req, res) => {
+    const { username, facultyId, email, password } = req.body;
+
     try {
-        const { facultyId, email, password } = req.body;
-
-        // Check if faculty exists but not registered
-        const existingFaculty = await Faculty.findOne({ facultyId });
-        if (!existingFaculty) {
-            return res.status(404).json({ message: "Faculty ID not found in database" });
-        }
-
         // Check if the user already exists
-        const existingUser = await User.findOne({ facultyId });
+        const existingUser = await User.findOne({ $or: [{ username }, { facultyId }, { email }] });
         if (existingUser) {
-            console.error(existingUser);
-            return res.status(400).json({ message: 'User already registered' });
+            return res.status(400).json({ message: 'User already exists with the provided username, faculty ID, or email' });
         }
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update faculty with email and password
-        existingFaculty.email = email;
-        existingFaculty.password = hashedPassword;
-        await existingFaculty.save();
-
+        // Create a new user
         const newUser = new User({
+            username,
             facultyId,
             email,
             password: hashedPassword,
-            role: existingFaculty.role,
         });
 
-        // Save the user in the database
         await newUser.save();
 
         res.status(201).json({ message: 'Registration successful' });
     } catch (error) {
-        console.error('Error during signup:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
@@ -145,5 +145,93 @@ router.post('/reset-password/:token', async (req, res) => {
         res.status(500).json({ message: 'Failed to reset password' });
     }
 });
+
+router.get('/profile/:facultyId', async (req, res) => {
+    const { facultyId } = req.params;
+
+    try {
+        const user = await User.findOne({ facultyId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            username: user.username,
+            facultyId: user.facultyId,
+            email: user.email,
+            phone: user.phone || '',
+            mobile: user.mobile || '', // Include mobile in the response
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+router.put('/profile/:facultyId', async (req, res) => {
+    const { facultyId } = req.params;
+    const { username, email, phone, mobile } = req.body;
+
+    try {
+        const user = await User.findOne({ facultyId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.username = username || user.username;
+        user.email = email || user.email;
+        user.phone = phone || user.phone;
+        user.mobile = mobile || user.mobile; // Update mobile
+
+        await user.save();
+
+        res.status(200).json({ message: 'Profile updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+router.put('/profile/:facultyId/image', upload.single('profileImage'), async (req, res) => {
+    const { facultyId } = req.params;
+
+    try {
+        const user = await User.findOne({ facultyId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Save the profile image path
+        user.profileImage = `uploads/${req.file.filename}`; // Save relative path
+        await user.save();
+
+        res.status(200).json({ message: 'Profile image updated successfully', profileImage: user.profileImage });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('profileImage', file);
+
+        try {
+            const user = JSON.parse(localStorage.getItem('user')); // Get facultyId from localStorage
+            const response = await axios.put(
+                `http://localhost:5000/api/auth/profile/${user.facultyId}/image`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            setProfilePhoto(`http://localhost:5000/${response.data.profileImage}`);
+            console.log('Profile image updated successfully:', response.data);
+        } catch (error) {
+            console.error('Error uploading profile image:', error.response?.data?.message || error.message);
+        }
+    }
+};
 
 module.exports = router;

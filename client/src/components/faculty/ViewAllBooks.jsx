@@ -82,29 +82,39 @@ const ViewAllBooks = () => {
     // Handle issue confirmation
     const handleIssueBook = async () => {
         try {
-            const response = await axios.put(`http://localhost:5000/api/faculty/books/issue/${selectedBook.bookId}`, {
-                issuedDate: new Date(), // Send the current date as the issuedDate
-            });
+            // Get user from localStorage
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            const response = await axios.put(
+                `http://localhost:5000/api/faculty/books/issue/${selectedBook._id}`, // Changed from bookId to _id
+                {
+                    issuedDate: new Date(),
+                    facultyId: user.facultyId // Add facultyId to the request
+                }
+            );
+
             if (response.status === 200) {
-                // Update the book's status and issuedDate in the frontend
+                alert('Book issued successfully');
+                // Update the book's status locally
                 setBooks((prevBooks) =>
                     prevBooks.map((book) =>
-                        book.bookId === selectedBook.bookId
+                        book._id === selectedBook._id
                             ? { ...book, status: 'issued', issuedDate: new Date() }
                             : book
                     )
                 );
-                setFilteredBooks((prevFilteredBooks) =>
-                    prevFilteredBooks.map((book) =>
-                        book.bookId === selectedBook.bookId
+                setFilteredBooks((prevBooks) =>
+                    prevBooks.map((book) =>
+                        book._id === selectedBook._id
                             ? { ...book, status: 'issued', issuedDate: new Date() }
                             : book
                     )
                 );
-                setShowModal(false); // Close the modal
+                setShowModal(false);
             }
         } catch (error) {
             console.error('Error issuing book:', error.response?.data?.message || error.message);
+            alert(error.response?.data?.message || 'Failed to issue book');
         }
     };
 
@@ -179,7 +189,7 @@ const ViewAllBooks = () => {
                     </thead>
                     <tbody>
                         {currentBooks.map((book) => (
-                            <tr key={book.bookId} className="hover:bg-gray-100">
+                            <tr key={book._id} className="hover:bg-gray-100"> {/* Changed from book.bookId to book._id */}
                                 <td className="border border-gray-300 px-4 py-2">{book.bookId}</td>
                                 <td className="border border-gray-300 px-4 py-2">{book.title}</td>
                                 <td className="border border-gray-300 px-4 py-2">{book.author}</td>

@@ -3,12 +3,44 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
 const userSchema = new mongoose.Schema({
-    facultyId: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    username: {
+        type: String,
+        required: true, // Make username a required field
+        unique: true, // Ensure usernames are unique
+        trim: true, // Remove extra spaces
+    },
+    facultyId: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        match: [/.+@.+\..+/, 'Please enter a valid email address'], // Email validation
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    mobile: {
+        type: String,
+        required: false, // Optional field
+        match: [/^\d{10}$/, 'Please enter a valid 10-digit mobile number'], // Validation for 10-digit number
+    },
+    profileImage: {
+        type: String, // Path to the uploaded image
+        required: false,
+    },
+    currentlyIssuedBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }] ,// Add this field
     role: { type: String, enum: ['admin', 'faculty'], default: 'faculty' },
     resetPasswordToken: { type: String }, // Token for password reset
-    resetPasswordExpires: { type: Date } // Expiration time for the reset token
+    resetPasswordExpires: { type: Date }, // Expiration time for the reset token
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
 // Pre-save hook to hash the password before saving

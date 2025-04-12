@@ -18,7 +18,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
                     onClick={() => navigate('/faculty/edit-profile')}
                     className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    👤 Edit Profile
+                    👤Profile
                 </button>
                 <button
                     onClick={handleLogout}

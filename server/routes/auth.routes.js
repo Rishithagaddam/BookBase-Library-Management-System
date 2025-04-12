@@ -130,7 +130,7 @@ router.post('/reset-password/:token', async (req, res) => {
 
         // Hash and save the new password
         const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
+        user.password = password;
 
         // Clear reset token and expiry
         user.resetPasswordToken = undefined;

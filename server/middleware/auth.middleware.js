@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const Faculty = require('../models/faculty');
 
-exports.verifyToken = (req, res, next) => {
+exports.verifyToken = async (req, res, next) => {
     const token = req.headers['authorization'];
 
     if (!token) {
@@ -8,11 +9,14 @@ exports.verifyToken = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET);
-        req.userId = decoded.id;
+        const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); // Verify token
+        req.user = await Faculty.findOne({ _id: decoded.id }); // Attach user to req
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorized", error: error.message });
     }
 };
 
@@ -26,4 +30,16 @@ exports.isAdmin = async (req, res, next) => {
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}; 
+};
+
+const isFaculty = async (req, res, next) => {
+    try {
+        const faculty = await Faculty.findOne({ facultyId: req.user.facultyId });
+        if (!faculty) {
+            return res.status(403).json({ message: 'Access denied. Faculty only.' });
+        }
+        next();
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};

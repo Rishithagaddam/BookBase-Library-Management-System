@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Import mongoose
 
 const bookSchema = new mongoose.Schema({
-    bookId: { type: String, required: true },  // Corrected to Number
+    bookId: { type: String, required: true },
     author: String,
     title: String,
     publisher: String,
@@ -13,9 +13,8 @@ const bookSchema = new mongoose.Schema({
         default: 'available',
     },
     issuedDate: { type: Date, default: null },
-    placeLocated: { type: String, default: null },  // Place where the book is located
+    placeLocated: { type: String, default: null },
 });
 
 const Book = mongoose.model('Book', bookSchema);
-
 module.exports = Book;

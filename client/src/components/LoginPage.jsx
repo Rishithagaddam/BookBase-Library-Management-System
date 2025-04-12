@@ -28,6 +28,7 @@ const LoginPage = () => {
                 facultyId: formData.facultyId,
                 password: formData.password
             });
+            localStorage.setItem('token', response.data.token); // Save token after login
 
             if (response.data.message === 'Login successful') {
                 localStorage.setItem('user', JSON.stringify({

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const Faculty = require('../models/faculty');
+const jwt = require('jsonwebtoken');
 
 exports.signup = async (req, res) => {
     try {
@@ -51,9 +52,12 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        // Send response with role for redirection
+        // Generate JWT token
+        const token = jwt.sign({ id: faculty._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
         res.status(200).json({
             message: "Login successful",
+            token, // Return the token
             role: faculty.role,
             facultyId: faculty.facultyId,
             email: faculty.email
@@ -61,4 +65,4 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
-}; 
+};

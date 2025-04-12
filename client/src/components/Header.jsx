@@ -5,6 +5,10 @@ import { FaBars } from 'react-icons/fa';
 const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const navigate = useNavigate();
 
+    const handleMenuClick = () => {
+        setIsSidebarOpen(!isSidebarOpen); // Simply toggle the value
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/login');
@@ -13,12 +17,13 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
     return (
         <header className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
             <div className="flex items-center">
+                {/* Show menu button only when sidebar is closed */}
                 {!isSidebarOpen && (
                     <button
-                        onClick={() => setIsSidebarOpen(true)} // Toggle sidebar
-                        className="p-2 bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none"
+                        onClick={handleMenuClick}
+                        className="p-2 bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none mr-4 transition-all duration-200"
                     >
-                        <FaBars className="text-white" />
+                        <FaBars className="text-white w-5 h-5" />
                     </button>
                 )}
                 <h1 className="text-2xl font-bold">Faculty Dashboard</h1>

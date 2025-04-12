@@ -3,7 +3,7 @@ import Header from '../Header';
 import { FaUserCircle, FaCamera } from 'react-icons/fa';
 import axios from 'axios';
 
-const EditProfile = ({ setIsSidebarOpen }) => {
+const EditProfile = () => {
     const [profilePhoto, setProfilePhoto] = useState(null);
     const [formData, setFormData] = useState({
         username: '',
@@ -84,7 +84,10 @@ const EditProfile = ({ setIsSidebarOpen }) => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
-            <Header isSidebarOpen={false} setIsSidebarOpen={setIsSidebarOpen} />
+            <Header 
+                isSidebarOpen={false} 
+                setIsSidebarOpen={() => {}} // Provide an empty function as fallback
+            />
             <div className="p-6">
                 <h1 className="text-3xl font-bold mb-6">Edit Profile</h1>
                 <div className="flex justify-center items-center flex-1 p-6">

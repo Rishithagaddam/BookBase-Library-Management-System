@@ -9,11 +9,14 @@ import DueReminders from './faculty/DueReminders';
 import ExploreArchives from './faculty/ExploreArchives';
 import EditProfile from './faculty/EditProfile';
 import Settings from './faculty/Settings';
+import FacultyFeedback from './faculty/FacultyFeedback';
+import BookWishlist from './faculty/BookWishlist';
+import FacultyForum from './faculty/FacultyForum';
 
 const FacultyDashboard = () => {
     const navigate = useNavigate();
     const [activeFeature, setActiveFeature] = useState('🏠 Dashboard');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Define setIsSidebarOpen here
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const features = [
         { name: '🏠 Dashboard', component: <Dashboard /> },
@@ -21,8 +24,11 @@ const FacultyDashboard = () => {
         { name: '📄 My Issued Books', component: <MyIssuedBooks /> },
         { name: '⏰ Due Reminders', component: <DueReminders /> },
         { name: '📁 Explore Archives', component: <ExploreArchives /> },
-        { name: '👤 Edit Profile', component: <EditProfile setIsSidebarOpen={setIsSidebarOpen} /> }, // Pass setIsSidebarOpen to EditProfile
+        { name: '👤 Edit Profile', component: <EditProfile /> },
         { name: '⚙️ Settings', component: <Settings /> },
+        { name: '📝 Feedback', component: <FacultyFeedback /> },
+        { name: '📚 Book Wishlist', component: <BookWishlist /> },
+        { name: '💬 Forum', component: <FacultyForum /> },
     ];
 
     const handleFeatureChange = (featureName) => {
@@ -44,7 +50,7 @@ const FacultyDashboard = () => {
             {/* Header */}
             <Header
                 isSidebarOpen={isSidebarOpen}
-                setIsSidebarOpen={setIsSidebarOpen} // Pass setIsSidebarOpen to Header
+                setIsSidebarOpen={setIsSidebarOpen}
             />
 
             <div className="flex flex-1">

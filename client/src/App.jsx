@@ -4,23 +4,29 @@ import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword'; // Import ResetPassword component
+import ResetPassword from './components/ResetPassword';
 import FacultyDashboard from './components/FacultyDashboard';
-import EditProfile from './components/faculty/EditProfile'; // Import EditProfile component
+import AdminDashboard from './components/admin/AdminDashboard'; // Add this import
+import EditProfile from './components/faculty/EditProfile';
+import BroadcastNotification from './components/BroadcastNotification';
 
 const App = () => {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<HomePage />} /> {/* Home Page */}
-                <Route path="/login" element={<LoginPage />} /> {/* Login Page */}
-                <Route path="/signup" element={<SignupPage />} /> {/* Signup Page */}
-                <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Forgot Password Page */}
-                <Route path="/reset-password/:token" element={<ResetPassword />} /> {/* Reset Password Page */}
-                <Route path="/faculty/dashboard" element={<FacultyDashboard />} /> {/* Faculty Dashboard */}
-                <Route path="/faculty/edit-profile" element={<EditProfile />} /> {/* Edit Profile Page */}
-            </Routes>
-        </Router>
+        <>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password/:token" element={<ResetPassword />} />
+                    <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+                    <Route path="/faculty/edit-profile" element={<EditProfile />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Add this route */}
+                </Routes>
+            </Router>
+            <BroadcastNotification />
+        </>
     );
 };
 

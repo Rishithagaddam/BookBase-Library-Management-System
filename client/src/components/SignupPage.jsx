@@ -6,7 +6,6 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 const SignupPage = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        username: '', // Added username field
         facultyId: '',
         email: '',
         password: '',
@@ -50,7 +49,6 @@ const SignupPage = () => {
 
         try {
             const response = await axios.post('http://localhost:5000/api/auth/signup', {
-                username: formData.username, // Include username in the request
                 facultyId: formData.facultyId,
                 email: formData.email,
                 password: formData.password
@@ -70,18 +68,6 @@ const SignupPage = () => {
                 <h2 className="text-xl font-bold text-center text-blue-600 mb-4">Sign Up</h2>
                 {error && <div className="bg-red-100 text-red-600 p-2 rounded mb-3">{error}</div>}
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                        <label className="block text-gray-700 font-medium mb-1">Username</label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Enter your Username"
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            required
-                        />
-                    </div>
                     <div className="mb-3">
                         <label className="block text-gray-700 font-medium mb-1">Faculty ID</label>
                         <input

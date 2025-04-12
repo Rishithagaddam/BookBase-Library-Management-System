@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
         type: String, // Path to the uploaded image
         required: false,
     },
-    currentlyIssuedBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }] ,// Add this field
+    
     role: { type: String, enum: ['admin', 'faculty'], default: 'faculty' },
     resetPasswordToken: { type: String }, // Token for password reset
     resetPasswordExpires: { type: Date }, // Expiration time for the reset token

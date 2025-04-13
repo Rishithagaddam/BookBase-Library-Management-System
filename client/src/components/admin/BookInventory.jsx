@@ -4,15 +4,19 @@ import axios from 'axios';
 const BookInventory = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [newBook, setNewBook] = useState({
         bookId: '',
         title: '',
         author: '',
         category: '',
         publisher: '',
-        placeLocated: ''
+        status: 'available'
     });
     const [editingBook, setEditingBook] = useState(null);
+    const [searchId, setSearchId] = useState('');
+    const [searchResults, setSearchResults] = useState(null);
 
     useEffect(() => {
         fetchBooks();
@@ -24,7 +28,8 @@ const BookInventory = () => {
             setBooks(response.data);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching books:', error);
+            setError('Error fetching books');
+            setLoading(false);
         }
     };
 
@@ -39,47 +44,91 @@ const BookInventory = () => {
                 author: '',
                 category: '',
                 publisher: '',
-                placeLocated: ''
+                status: 'available'
             });
         } catch (error) {
-            console.error('Error adding book:', error);
+            setError('Error adding book');
         }
     };
 
     const handleUpdateBook = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:5000/api/admin/books/${editingBook._id}`, editingBook);
+            const response = await axios.put(
+                `http://localhost:5000/api/admin/books/${editingBook._id}`, 
+                editingBook
+            );
+
+            // Update the books list with the updated book
             setBooks(books.map(book => 
-                book._id === editingBook._id ? editingBook : book
+                book._id === editingBook._id ? response.data : book
             ));
+
+            // Reset the editing state
             setEditingBook(null);
+            setSuccess('Book updated successfully');
+            setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
             console.error('Error updating book:', error);
+            setError(error.response?.data?.message || 'Error updating book');
+            setTimeout(() => setError(''), 3000);
         }
     };
 
-    const handleDeleteBook = async (bookId) => {
-        if (window.confirm('Are you sure you want to delete this book?')) {
+    const handleRemoveBook = async (bookId) => {
+        if (window.confirm('Are you sure you want to remove this book?')) {
             try {
                 await axios.delete(`http://localhost:5000/api/admin/books/${bookId}`);
                 setBooks(books.filter(book => book._id !== bookId));
             } catch (error) {
-                console.error('Error deleting book:', error);
+                setError('Error removing book');
             }
+        }
+    };
+
+    const handleSearch = async () => {
+        if (!searchId.trim()) {
+            setError('Please enter a book ID');
+            return;
+        }
+    
+        try {
+            const response = await axios.get(`http://localhost:5000/api/admin/books/search?bookId=${searchId}`);
+            setSearchResults(response.data);
+            setError('');
+        } catch (error) {
+            setSearchResults(null);
+            setError(error.response?.data?.message || 'Book not found');
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (editingBook) {
+            handleUpdateBook(e);
+        } else {
+            handleAddBook(e);
         }
     };
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold mb-6">📘 Book Inventory</h1>
+            <h1 className="text-3xl font-bold mb-6">📚 Book Inventory</h1>
+
+            {error && (
+                <div className="bg-red-100 text-red-600 p-3 rounded mb-4">{error}</div>
+            )}
+
+            {success && (
+                <div className="bg-green-100 text-green-600 p-3 rounded mb-4">{success}</div>
+            )}
 
             {/* Add/Edit Book Form */}
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-semibold mb-4">
                     {editingBook ? 'Edit Book' : 'Add New Book'}
                 </h2>
-                <form onSubmit={editingBook ? handleUpdateBook : handleAddBook} className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                     <input
                         type="text"
                         placeholder="Book ID"
@@ -156,12 +205,40 @@ const BookInventory = () => {
                         )}
                         <button
                             type="submit"
-                            className="bg-blue-600 text-white px-4 py-2 rounded"
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         >
                             {editingBook ? 'Update Book' : 'Add Book'}
                         </button>
                     </div>
                 </form>
+            </div>
+
+            {/* Search Book by ID */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 className="text-xl font-semibold mb-4">Search Book by ID</h2>
+                <div className="flex gap-4">
+                    <input
+                        type="text"
+                        placeholder="Enter Book ID"
+                        value={searchId}
+                        onChange={(e) => setSearchId(e.target.value)}
+                        className="p-2 border rounded flex-1"
+                    />
+                    <button
+                        onClick={handleSearch}
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    >
+                        Search
+                    </button>
+                </div>
+                {searchResults && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded">
+                        <h3 className="font-semibold">{searchResults.title}</h3>
+                        <p>ID: {searchResults.bookId}</p>
+                        <p>Author: {searchResults.author}</p>
+                        <p>Status: {searchResults.status}</p>
+                    </div>
+                )}
             </div>
 
             {/* Books List */}
@@ -208,10 +285,10 @@ const BookInventory = () => {
                                                 Edit
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteBook(book._id)}
+                                                onClick={() => handleRemoveBook(book._id)}
                                                 className="text-red-600 hover:text-red-800"
                                             >
-                                                Delete
+                                                Remove
                                             </button>
                                         </td>
                                     </tr>

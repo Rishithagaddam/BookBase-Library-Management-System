@@ -35,6 +35,9 @@ const userSchema = new mongoose.Schema({
     },
     
     role: { type: String, enum: ['admin', 'faculty'], default: 'faculty' },
+    password: { type: String }, // Optional password field
+    currentlyIssuedBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }],
+    totalBooksIssued: { type: Number, default: 0 },
     resetPasswordToken: { type: String }, // Token for password reset
     resetPasswordExpires: { type: Date }, // Expiration time for the reset token
     createdAt: {

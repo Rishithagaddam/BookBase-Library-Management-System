@@ -128,24 +128,17 @@ const FacultyRecords = () => {
         }
 
         try {
-            // First check if faculty has any issued books
-            const faculty = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
-            if (faculty.data.currentlyIssuedBooks?.length > 0) {
-                setError('Cannot remove faculty with issued books');
-                setTimeout(() => setError(''), 3000);
-                return;
-            }
-
-            // Proceed with deletion
+            // Remove using facultyId directly
             const response = await axios.delete(`http://localhost:5000/api/admin/faculty/${facultyId}`);
             
             if (response.status === 200) {
-                // Remove faculty from the list
-                setFaculty(prev => prev.filter(f => f._id !== facultyId));
+                // Remove faculty from the list and update state
+                setFaculty(prevFaculty => prevFaculty.filter(f => f.facultyId !== facultyId));
                 setSuccess('Faculty removed successfully');
                 setTimeout(() => setSuccess(''), 3000);
             }
         } catch (error) {
+            console.error('Error removing faculty:', error);
             setError(error.response?.data?.message || 'Error removing faculty');
             setTimeout(() => setError(''), 3000);
         }
@@ -155,10 +148,10 @@ const FacultyRecords = () => {
         try {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             
-            // First check if faculty has any issued books before deactivating
+            // Check for issued books before deactivating
             if (newStatus === 'inactive') {
-                const faculty = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
-                if (faculty.data.currentlyIssuedBooks?.length > 0) {
+                const facultyResponse = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
+                if (facultyResponse.data.currentlyIssuedBooks?.length > 0) {
                     setError('Cannot deactivate faculty with issued books');
                     setTimeout(() => setError(''), 3000);
                     return;
@@ -172,7 +165,7 @@ const FacultyRecords = () => {
             
             if (response.status === 200) {
                 // Update faculty list with new status
-                setFaculty(faculty.map(f => {
+                setFaculty(prevFaculty => prevFaculty.map(f => {
                     if (f._id === facultyId) {
                         return { ...f, status: newStatus };
                     }
@@ -181,8 +174,12 @@ const FacultyRecords = () => {
                 
                 setSuccess(`Faculty status updated to ${newStatus}`);
                 setTimeout(() => setSuccess(''), 3000);
+                
+                // Refresh faculty data to ensure sync with DB
+                fetchFacultyData();
             }
         } catch (error) {
+            console.error('Error updating faculty status:', error);
             setError(error.response?.data?.message || 'Error updating faculty status');
             setTimeout(() => setError(''), 3000);
         }
@@ -327,36 +324,23 @@ const FacultyRecords = () => {
                                     <th className="px-4 py-2">Name</th>
                                     <th className="px-4 py-2">Role</th>
                                     <th className="px-4 py-2">Books Issued</th>
-                                    <th className="px-4 py-2">Status</th>
                                     <th className="px-4 py-2">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {faculty.map((member) => (
-                                    <tr key={member._id} className="border-t">
+                                    <tr key={member._id || member.facultyId} className="border-t">
                                         <td className="px-4 py-2">{member.facultyId}</td>
                                         <td className="px-4 py-2">{member.facultyName}</td>
                                         <td className="px-4 py-2">{member.role}</td>
                                         <td className="px-4 py-2">{member.currentlyIssuedBooks?.length || 0}</td>
                                         <td className="px-4 py-2">
-                                            <span className={`px-2 py-1 rounded-full text-sm ${
-                                                member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {member.status || 'Active'}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-2">
                                             <button
-                                                onClick={() => handleRemoveFaculty(member._id)}
-                                                className="text-red-600 hover:text-red-800"
+                                                onClick={() => handleRemoveFaculty(member.facultyId)}
+                                                className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-600 hover:bg-red-50"
+                                                disabled={member.currentlyIssuedBooks?.length > 0}
                                             >
                                                 Remove
-                                            </button>
-                                            <button
-                                                onClick={() => handleToggleFacultyStatus(member._id, member.status)}
-                                                className="text-blue-600 hover:text-blue-800 ml-2"
-                                            >
-                                                {member.status === 'active' ? 'Deactivate' : 'Activate'}
                                             </button>
                                         </td>
                                     </tr>

@@ -82,26 +82,46 @@ router.post('/faculty', async (req, res) => {
     }
 });
 
-// Remove faculty
+// Remove faculty by facultyId (not _id)
 router.delete('/faculty/:facultyId', async (req, res) => {
     try {
-        const faculty = await Faculty.findOneAndDelete({ _id: req.params.facultyId });
+        const faculty = await Faculty.findOne({ facultyId: req.params.facultyId });
         
         if (!faculty) {
             return res.status(404).json({ message: 'Faculty not found' });
         }
 
-        // Check if faculty has any issued books
-        if (faculty.currentlyIssuedBooks && faculty.currentlyIssuedBooks.length > 0) {
-            return res.status(400).json({ 
-                message: 'Cannot remove faculty with issued books. Please return all books first.' 
-            });
+        if (faculty.currentlyIssuedBooks?.length > 0) {
+            return res.status(400).json({ message: 'Cannot remove faculty with issued books' });
         }
 
-        res.json({ message: 'Faculty removed successfully', faculty });
+        await Faculty.deleteOne({ facultyId: req.params.facultyId });
+        res.status(200).json({ message: 'Faculty removed successfully' });
     } catch (error) {
         console.error('Error removing faculty:', error);
         res.status(500).json({ message: 'Error removing faculty', error: error.message });
+    }
+});
+
+router.patch('/faculty/:facultyId/status', async (req, res) => {
+    try {
+        const faculty = await Faculty.findById(req.params.facultyId);
+        
+        if (!faculty) {
+            return res.status(404).json({ message: 'Faculty not found' });
+        }
+
+        if (req.body.status === 'inactive' && faculty.currentlyIssuedBooks?.length > 0) {
+            return res.status(400).json({ message: 'Cannot deactivate faculty with issued books' });
+        }
+
+        faculty.status = req.body.status;
+        await faculty.save();
+        
+        res.status(200).json({ message: 'Faculty status updated successfully', faculty });
+    } catch (error) {
+        console.error('Error updating faculty status:', error);
+        res.status(500).json({ message: 'Error updating faculty status', error: error.message });
     }
 });
 

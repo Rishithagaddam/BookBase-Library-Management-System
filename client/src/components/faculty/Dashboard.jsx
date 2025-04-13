@@ -18,7 +18,8 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            setUserData(JSON.parse(localStorage.getItem('user')));
+            const user = JSON.parse(localStorage.getItem('user'));
+            setUserData(user);
             
             const [
                 hoursResponse, 
@@ -28,7 +29,7 @@ const Dashboard = () => {
             ] = await Promise.all([
                 axios.get('http://localhost:5000/api/admin/settings/working-hours'),
                 axios.get('http://localhost:5000/api/admin/settings/holidays'),
-                axios.get(`http://localhost:5000/api/faculty/books/issued/${userData.facultyId}`),
+                axios.get(`http://localhost:5000/api/faculty/dashboard/${user.facultyId}`),
                 axios.get('http://localhost:5000/api/broadcasts')
             ]);
 
@@ -36,12 +37,12 @@ const Dashboard = () => {
                 workingHours: hoursResponse.data,
                 holidays: holidaysResponse.data,
                 issuedBooks: issuedBooksResponse.data,
-                dueBooks: issuedBooksResponse.data.filter(book => 
+                dueBooks: issuedBooksResponse.data.currentlyIssuedBooks.filter(book => 
                     new Date(book.dueDate) < new Date()
                 )
             });
             setBroadcasts(broadcastsResponse.data);
-            setUserData(user);
+
             setLoading(false);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -56,7 +57,7 @@ const Dashboard = () => {
             {userData && (
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-md">
                     <h1 className="text-3xl font-bold mb-2">
-                        Welcome back, {userData?.name}! 👋 {/* Access 'name' since that's stored in localStorage */}
+                        Welcome back, {userData?.name}! 👋 
                     </h1>
                     <p>Faculty ID: {userData?.facultyId}</p>
                 </div>

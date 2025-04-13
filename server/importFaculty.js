@@ -23,9 +23,6 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
     const formattedData = facultyData.map(faculty => ({
       facultyId: faculty.facultyId?.toString().trim(),
       facultyName: faculty.facultyName?.toString().trim(),
-      facultyEmail: faculty.facultyEmail?.toString().trim(),
-      currentlyIssuedBooks: [],
-      totalBooksIssued: 0,
       role: faculty.role?.toLowerCase() || 'faculty',
     }));
 

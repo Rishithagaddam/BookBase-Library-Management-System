@@ -51,7 +51,8 @@ router.post('/signup', async (req, res) => {
             username: existingFaculty.facultyName,
             facultyId,
             email,
-            password // Password will be hashed by the pre-save hook
+            password, // Password will be hashed by the pre-save hook
+            role: existingFaculty.role,
         });
 
         await newUser.save();

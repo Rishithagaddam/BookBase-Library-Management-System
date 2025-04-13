@@ -123,19 +123,68 @@ const FacultyRecords = () => {
     };
 
     const handleRemoveFaculty = async (facultyId) => {
-        if (window.confirm('Are you sure you want to remove this faculty member?')) {
-            try {
-                await axios.delete(`http://localhost:5000/api/admin/faculty/${facultyId}`);
-                
+        if (!window.confirm('Are you sure you want to remove this faculty member?')) {
+            return;
+        }
+
+        try {
+            // First check if faculty has any issued books
+            const faculty = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
+            if (faculty.data.currentlyIssuedBooks?.length > 0) {
+                setError('Cannot remove faculty with issued books');
+                setTimeout(() => setError(''), 3000);
+                return;
+            }
+
+            // Proceed with deletion
+            const response = await axios.delete(`http://localhost:5000/api/admin/faculty/${facultyId}`);
+            
+            if (response.status === 200) {
                 // Remove faculty from the list
-                setFaculty(faculty.filter(f => f._id !== facultyId));
-                
+                setFaculty(prev => prev.filter(f => f._id !== facultyId));
                 setSuccess('Faculty removed successfully');
                 setTimeout(() => setSuccess(''), 3000);
-            } catch (error) {
-                setError(error.response?.data?.message || 'Error removing faculty');
-                setTimeout(() => setError(''), 3000);
             }
+        } catch (error) {
+            setError(error.response?.data?.message || 'Error removing faculty');
+            setTimeout(() => setError(''), 3000);
+        }
+    };
+
+    const handleToggleFacultyStatus = async (facultyId, currentStatus) => {
+        try {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            
+            // First check if faculty has any issued books before deactivating
+            if (newStatus === 'inactive') {
+                const faculty = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
+                if (faculty.data.currentlyIssuedBooks?.length > 0) {
+                    setError('Cannot deactivate faculty with issued books');
+                    setTimeout(() => setError(''), 3000);
+                    return;
+                }
+            }
+
+            // Update status in database
+            const response = await axios.patch(`http://localhost:5000/api/admin/faculty/${facultyId}/status`, {
+                status: newStatus
+            });
+            
+            if (response.status === 200) {
+                // Update faculty list with new status
+                setFaculty(faculty.map(f => {
+                    if (f._id === facultyId) {
+                        return { ...f, status: newStatus };
+                    }
+                    return f;
+                }));
+                
+                setSuccess(`Faculty status updated to ${newStatus}`);
+                setTimeout(() => setSuccess(''), 3000);
+            }
+        } catch (error) {
+            setError(error.response?.data?.message || 'Error updating faculty status');
+            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -302,6 +351,12 @@ const FacultyRecords = () => {
                                                 className="text-red-600 hover:text-red-800"
                                             >
                                                 Remove
+                                            </button>
+                                            <button
+                                                onClick={() => handleToggleFacultyStatus(member._id, member.status)}
+                                                className="text-blue-600 hover:text-blue-800 ml-2"
+                                            >
+                                                {member.status === 'active' ? 'Deactivate' : 'Activate'}
                                             </button>
                                         </td>
                                     </tr>

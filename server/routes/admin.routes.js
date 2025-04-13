@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Faculty = require('../models/faculty');
 const Book = require('../models/book');
+const Feedback = require('../models/feedback');
+const Holiday = require('../models/settings');
 
 // Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -19,30 +21,265 @@ const isAdmin = async (req, res, next) => {
 // Get dashboard statistics
 router.get('/dashboard/stats', isAdmin, async (req, res) => {
     try {
-        const totalFaculty = await Faculty.countDocuments();
-        const totalBooks = await Book.countDocuments();
-        const availableBooks = await Book.countDocuments({ status: 'available' });
-        const issuedBooks = await Book.countDocuments({ status: 'issued' });
+        const [totalFaculty, totalBooks, availableBooks, issuedBooks, pendingFeedbacks] = await Promise.all([
+            Faculty.countDocuments(),
+            Book.countDocuments(),
+            Book.countDocuments({ status: 'available' }),
+            Book.countDocuments({ status: 'issued' }),
+            Feedback.countDocuments({ status: 'Pending' })
+        ]);
 
         res.json({
             totalFaculty,
             totalBooks,
             availableBooks,
-            issuedBooks
+            issuedBooks,
+            pendingFeedbacks
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error fetching dashboard stats:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
 // Get all faculty members
-router.get('/faculty', isAdmin, async (req, res) => {
+router.get('/faculty', async (req, res) => {
     try {
-        const faculty = await Faculty.find().select('-password');
+        const faculty = await Faculty.find()
+            .select('-__v')
+            .populate('currentlyIssuedBooks');
         res.json(faculty);
+    } catch (error) {
+        console.error('Error fetching faculty:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Add new faculty
+router.post('/faculty', async (req, res) => {
+    try {
+        const { facultyId, facultyName, role } = req.body;
+
+        // Check if faculty already exists
+        const existingFaculty = await Faculty.findOne({ facultyId });
+        if (existingFaculty) {
+            return res.status(400).json({ message: 'Faculty ID already exists' });
+        }
+
+        const faculty = new Faculty({
+            facultyId,
+            facultyName,
+            role: role || 'faculty',
+            currentlyIssuedBooks: [],
+            totalBooksIssued: 0
+        });
+
+        const savedFaculty = await faculty.save();
+        res.status(201).json(savedFaculty);
+    } catch (error) {
+        console.error('Error adding faculty:', error);
+        res.status(500).json({ message: 'Error adding faculty', error: error.message });
+    }
+});
+
+// Remove faculty
+router.delete('/faculty/:facultyId', async (req, res) => {
+    try {
+        const faculty = await Faculty.findOneAndDelete({ _id: req.params.facultyId });
+        
+        if (!faculty) {
+            return res.status(404).json({ message: 'Faculty not found' });
+        }
+
+        // Check if faculty has any issued books
+        if (faculty.currentlyIssuedBooks && faculty.currentlyIssuedBooks.length > 0) {
+            return res.status(400).json({ 
+                message: 'Cannot remove faculty with issued books. Please return all books first.' 
+            });
+        }
+
+        res.json({ message: 'Faculty removed successfully', faculty });
+    } catch (error) {
+        console.error('Error removing faculty:', error);
+        res.status(500).json({ message: 'Error removing faculty', error: error.message });
+    }
+});
+
+// Get all feedbacks with filters
+router.get('/feedbacks', async (req, res) => {
+    try {
+        const { status = 'all' } = req.query;
+        const query = status !== 'all' ? { status } : {};
+        
+        const feedbacks = await Feedback.find(query)
+            .sort({ createdAt: -1 });
+        res.json(feedbacks);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-module.exports = router; 
+// Update feedback status
+router.put('/feedbacks/:id', async (req, res) => {
+    try {
+        const feedback = await Feedback.findByIdAndUpdate(
+            req.params.id,
+            { status: req.body.status },
+            { new: true }
+        );
+        res.json(feedback);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Add admin response to feedback
+router.put('/feedbacks/:id/respond', async (req, res) => {
+    try {
+        const feedback = await Feedback.findByIdAndUpdate(
+            req.params.id,
+            { 
+                adminResponse: req.body.adminResponse,
+                status: 'Resolved'
+            },
+            { new: true }
+        );
+        res.json(feedback);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Get working hours
+router.get('/settings/working-hours', async (req, res) => {
+    try {
+        // Default working hours if not set
+        res.json({ start: '09:00', end: '17:00' });
+    } catch (error) {
+        console.error('Error fetching working hours:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Update working hours
+router.post('/settings/working-hours', async (req, res) => {
+    try {
+        const { start, end } = req.body;
+        // Save to database if you have a settings model
+        res.json({ start, end });
+    } catch (error) {
+        console.error('Error updating working hours:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get holidays
+router.get('/settings/holidays', async (req, res) => {
+    try {
+        const holidays = await Holiday.find().sort({ date: 1 });
+        res.json(holidays);
+    } catch (error) {
+        console.error('Error fetching holidays:', error);
+        res.status(500).json({ message: 'Error fetching holidays' });
+    }
+});
+
+// Add holiday
+router.post('/settings/holidays', async (req, res) => {
+    try {
+        const holiday = new Holiday(req.body);
+        await holiday.save();
+        res.status(201).json(holiday);
+    } catch (error) {
+        console.error('Error adding holiday:', error);
+        res.status(500).json({ message: 'Error adding holiday' });
+    }
+});
+
+// Remove holiday
+router.delete('/settings/holidays/:id', async (req, res) => {
+    try {
+        const holiday = await Holiday.findByIdAndDelete(req.params.id);
+        if (!holiday) {
+            return res.status(404).json({ message: 'Holiday not found' });
+        }
+        res.json({ message: 'Holiday removed successfully' });
+    } catch (error) {
+        console.error('Error removing holiday:', error);
+        res.status(500).json({ message: 'Error removing holiday' });
+    }
+});
+
+// Get all books
+router.get('/books', async (req, res) => {
+    try {
+        const books = await Book.find().sort({ createdAt: -1 });
+        res.json(books);
+    } catch (error) {
+        console.error('Error fetching books:', error);
+        res.status(500).json({ message: 'Error fetching books' });
+    }
+});
+
+// Search book by ID
+router.get('/books/search', async (req, res) => {
+    try {
+        const { bookId } = req.query;
+        const book = await Book.findOne({ bookId });
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        res.json(book);
+    } catch (error) {
+        console.error('Error searching book:', error);
+        res.status(500).json({ message: 'Error searching book' });
+    }
+});
+
+// Add new book
+router.post('/books', async (req, res) => {
+    try {
+        const book = new Book(req.body);
+        await book.save();
+        res.status(201).json(book);
+    } catch (error) {
+        console.error('Error adding book:', error);
+        res.status(500).json({ message: 'Error adding book' });
+    }
+});
+
+// Update book
+router.put('/books/:id', async (req, res) => {
+    try {
+        const book = await Book.findByIdAndUpdate(
+            req.params.id, 
+            req.body,
+            { new: true }
+        );
+        
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        
+        res.json(book);
+    } catch (error) {
+        console.error('Error updating book:', error);
+        res.status(500).json({ message: 'Error updating book' });
+    }
+});
+
+// Remove book
+router.delete('/books/:id', async (req, res) => {
+    try {
+        const book = await Book.findByIdAndDelete(req.params.id);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        res.json({ message: 'Book removed successfully' });
+    } catch (error) {
+        console.error('Error removing book:', error);
+        res.status(500).json({ message: 'Error removing book' });
+    }
+});
+
+module.exports = router;

@@ -1,19 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars } from 'react-icons/fa';
+import { FaBars } from 'react-icons/fa'; // Keep the menu icon
 
 const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const navigate = useNavigate();
-
+    
     const handleMenuClick = () => {
         setIsSidebarOpen(!isSidebarOpen); // Simply toggle the value
     };
-
+    
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/login');
     };
-
+    
     return (
         <header className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
             <div className="flex items-center">
@@ -26,20 +26,34 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         <FaBars className="text-white w-5 h-5" />
                     </button>
                 )}
-                <h1 className="text-2xl font-bold">Faculty Dashboard</h1>
+                <div className="flex items-center">
+                    {/* Colorful Book Icon and Heading */}
+                    <img
+                        src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png"
+                        alt="Book Icon"
+                        className="w-10 h-10 mr-3"
+                    />
+
+                    <div>
+                        <h1 className="text-2xl font-bold leading-tight">Library</h1>
+                        <h2 className="text-lg font-medium leading-tight">Management</h2>
+                    </div>
+                </div>
             </div>
             <div className="flex items-center space-x-4">
                 <button
-                    onClick={() => navigate('/faculty/edit-profile')}
-                    className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-700 transition-all duration-200 flex items-center"
+                    onClick={() => navigate('/user/edit-profile')}
+                    className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center shadow-sm border border-blue-400"
                 >
-                    <span className="mr-1">👤</span> Profile
+                    <span className="mr-2 text-lg">👤</span> 
+                    <span className="font-medium">Profile</span>
                 </button>
                 <button
                     onClick={handleLogout}
-                    className="bg-red-500 px-4 py-2 rounded hover:bg-red-700 transition-all duration-200 flex items-center"
+                    className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 flex items-center shadow-sm border border-red-400"
                 >
-                    <span className="mr-1">🚪</span> Logout
+                    <span className="mr-2 text-lg">🚪</span> 
+                    <span className="font-medium">Logout</span>
                 </button>
             </div>
         </header>

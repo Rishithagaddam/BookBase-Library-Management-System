@@ -4,6 +4,7 @@ const Faculty = require('../models/faculty');
 const Book = require('../models/book');
 const Feedback = require('../models/feedback');
 const Holiday = require('../models/settings');
+const User = require('../models/user');
 
 // Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -19,7 +20,7 @@ const isAdmin = async (req, res, next) => {
 };
 
 // Get dashboard statistics
-router.get('/dashboard/stats', isAdmin, async (req, res) => {
+router.get('/dashboard/stats', async (req, res) => {
     try {
         const [totalFaculty, totalBooks, availableBooks, issuedBooks, pendingFeedbacks] = await Promise.all([
             Faculty.countDocuments(),
@@ -60,7 +61,6 @@ router.post('/faculty', async (req, res) => {
     try {
         const { facultyId, facultyName, role } = req.body;
 
-        // Check if faculty already exists
         const existingFaculty = await Faculty.findOne({ facultyId });
         if (existingFaculty) {
             return res.status(400).json({ message: 'Faculty ID already exists' });
@@ -95,8 +95,13 @@ router.delete('/faculty/:facultyId', async (req, res) => {
             return res.status(400).json({ message: 'Cannot remove faculty with issued books' });
         }
 
-        await Faculty.deleteOne({ facultyId: req.params.facultyId });
-        res.status(200).json({ message: 'Faculty removed successfully' });
+        // Delete from both Faculty and User collections
+        await Promise.all([
+            Faculty.deleteOne({ facultyId: req.params.facultyId }),
+            User.deleteOne({ facultyId: req.params.facultyId }) // Add this line
+        ]);
+
+        res.status(200).json({ message: 'Faculty removed successfully from all tables' });
     } catch (error) {
         console.error('Error removing faculty:', error);
         res.status(500).json({ message: 'Error removing faculty', error: error.message });

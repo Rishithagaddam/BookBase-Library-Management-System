@@ -9,6 +9,7 @@ const Dashboard = () => {
         issuedBooks: [],
         dueBooks: []
     });
+    const [broadcasts, setBroadcasts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -23,11 +24,13 @@ const Dashboard = () => {
             const [
                 hoursResponse, 
                 holidaysResponse, 
-                issuedBooksResponse
+                issuedBooksResponse,
+                broadcastsResponse
             ] = await Promise.all([
                 axios.get('http://localhost:5000/api/admin/settings/working-hours'),
                 axios.get('http://localhost:5000/api/admin/settings/holidays'),
-                axios.get(`http://localhost:5000/api/faculty/books/issued/${user.facultyId}`)
+                axios.get(`http://localhost:5000/api/faculty/books/issued/${user.facultyId}`),
+                axios.get('http://localhost:5000/api/broadcasts')
             ]);
 
             setLibraryInfo({
@@ -38,6 +41,7 @@ const Dashboard = () => {
                     new Date(book.dueDate) < new Date()
                 )
             });
+            setBroadcasts(broadcastsResponse.data);
             setUserData(user);
             setLoading(false);
         } catch (error) {
@@ -59,6 +63,33 @@ const Dashboard = () => {
                 </h1>
                 <p>Faculty ID: {userData?.facultyId}</p>
             </div>
+
+            {/* Important Broadcasts */}
+            {broadcasts.length > 0 && (
+                <div className="bg-yellow-50 p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-4 text-yellow-800">
+                        📢 Important Announcements
+                    </h2>
+                    <div className="space-y-4">
+                        {broadcasts.map(broadcast => (
+                            <div 
+                                key={broadcast._id} 
+                                className={`p-4 rounded-lg ${
+                                    broadcast.priority === 'high' 
+                                        ? 'bg-red-100 border-l-4 border-red-500' 
+                                        : 'bg-white'
+                                }`}
+                            >
+                                <h3 className="font-semibold text-lg">{broadcast.title}</h3>
+                                <p className="text-gray-700 mt-1">{broadcast.content}</p>
+                                <div className="text-sm text-gray-500 mt-2">
+                                    Posted: {new Date(broadcast.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Quick Stats */}
@@ -92,45 +123,39 @@ const Dashboard = () => {
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Due Books Alert */}
-                {libraryInfo.dueBooks.length > 0 && (
-                    <div className="bg-red-50 p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 text-red-800">
-                            ⚠️ Overdue Books
-                        </h2>
-                        <div className="space-y-2">
-                            {libraryInfo.dueBooks.map(book => (
-                                <div key={book._id} className="flex justify-between items-center">
-                                    <span>{book.title}</span>
-                                    <span className="text-red-600">
-                                        Due: {new Date(book.dueDate).toLocaleDateString()}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Upcoming Holidays */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-4">📅 Upcoming Holidays</h2>
-                    <div className="space-y-2">
-                        {libraryInfo.holidays
-                            .filter(holiday => new Date(holiday.date) >= new Date())
-                            .slice(0, 3)
-                            .map(holiday => (
-                                <div 
-                                    key={holiday._id} 
-                                    className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                                >
+            {/* Upcoming Holidays */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-4">📅 Upcoming Holidays</h2>
+                <div className="grid gap-4">
+                    {libraryInfo.holidays
+                        .filter(holiday => new Date(holiday.date) >= new Date())
+                        .sort((a, b) => new Date(a.date) - new Date(b.date))
+                        .map(holiday => (
+                            <div 
+                                key={holiday._id} 
+                                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                                <div>
                                     <span className="font-medium">{holiday.description}</span>
-                                    <span className="text-sm text-gray-600">
-                                        {new Date(holiday.date).toLocaleDateString()}
-                                    </span>
+                                    <p className="text-sm text-gray-600">
+                                        {new Date(holiday.date).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </p>
                                 </div>
-                            ))}
-                    </div>
+                                <span className="text-blue-600">
+                                    {Math.ceil((new Date(holiday.date) - new Date()) / (1000 * 60 * 60 * 24))} days left
+                                </span>
+                            </div>
+                        ))}
+                    {libraryInfo.holidays.filter(holiday => new Date(holiday.date) >= new Date()).length === 0 && (
+                        <p className="text-gray-500 text-center">No upcoming holidays</p>
+                    )}
                 </div>
             </div>
 

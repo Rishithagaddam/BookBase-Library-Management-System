@@ -23,7 +23,8 @@ exports.login = async (req, res) => {
             message: "Login successful",
             role: faculty.role,
             facultyId: faculty.facultyId,
-            email: faculty.email
+            email: faculty.email,
+            username: faculty.username,
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

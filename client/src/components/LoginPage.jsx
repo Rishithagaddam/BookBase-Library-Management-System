@@ -34,7 +34,8 @@ const LoginPage = () => {
                 localStorage.setItem('user', JSON.stringify({
                     facultyId: response.data.facultyId,
                     role: response.data.role,
-                    email: response.data.email
+                    email: response.data.email,
+                    name: response.data.username
                 }));
 
                 if (response.data.role === 'admin') {

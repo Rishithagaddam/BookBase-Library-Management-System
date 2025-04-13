@@ -20,6 +20,7 @@ const FacultyRecords = () => {
         facultyName: '',
         role: 'faculty'
     });
+    const [selectedFacultyIds, setSelectedFacultyIds] = useState([]);
 
     useEffect(() => {
         fetchFacultyData();
@@ -122,19 +123,22 @@ const FacultyRecords = () => {
         }
     };
 
-    const handleRemoveFaculty = async (facultyId) => {
-        if (!window.confirm('Are you sure you want to remove this faculty member?')) {
+    const handleRemoveFaculty = async () => {
+        if (!window.confirm('Are you sure you want to remove the selected faculty members?')) {
             return;
         }
 
         try {
-            // Remove using facultyId directly
-            const response = await axios.delete(`http://localhost:5000/api/admin/faculty/${facultyId}`);
-            
+            // Remove selected faculty using their IDs
+            const response = await axios.delete('http://localhost:5000/api/admin/faculty', {
+                data: { facultyIds: selectedFacultyIds }
+            });
+
             if (response.status === 200) {
-                // Remove faculty from the list and update state
-                setFaculty(prevFaculty => prevFaculty.filter(f => f.facultyId !== facultyId));
-                setSuccess('Faculty removed successfully');
+                // Remove deleted faculty from the list
+                setFaculty(prevFaculty => prevFaculty.filter(f => !selectedFacultyIds.includes(f.facultyId)));
+                setSelectedFacultyIds([]); // Clear selected IDs
+                setSuccess('Selected faculty members removed successfully');
                 setTimeout(() => setSuccess(''), 3000);
             }
         } catch (error) {
@@ -144,45 +148,14 @@ const FacultyRecords = () => {
         }
     };
 
-    const handleToggleFacultyStatus = async (facultyId, currentStatus) => {
-        try {
-            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-            
-            // Check for issued books before deactivating
-            if (newStatus === 'inactive') {
-                const facultyResponse = await axios.get(`http://localhost:5000/api/admin/faculty/${facultyId}`);
-                if (facultyResponse.data.currentlyIssuedBooks?.length > 0) {
-                    setError('Cannot deactivate faculty with issued books');
-                    setTimeout(() => setError(''), 3000);
-                    return;
-                }
+    const handleFacultySelect = (facultyId) => {
+        setSelectedFacultyIds(prevIds => {
+            if (prevIds.includes(facultyId)) {
+                return prevIds.filter(id => id !== facultyId);
+            } else {
+                return [...prevIds, facultyId];
             }
-
-            // Update status in database
-            const response = await axios.patch(`http://localhost:5000/api/admin/faculty/${facultyId}/status`, {
-                status: newStatus
-            });
-            
-            if (response.status === 200) {
-                // Update faculty list with new status
-                setFaculty(prevFaculty => prevFaculty.map(f => {
-                    if (f._id === facultyId) {
-                        return { ...f, status: newStatus };
-                    }
-                    return f;
-                }));
-                
-                setSuccess(`Faculty status updated to ${newStatus}`);
-                setTimeout(() => setSuccess(''), 3000);
-                
-                // Refresh faculty data to ensure sync with DB
-                fetchFacultyData();
-            }
-        } catch (error) {
-            console.error('Error updating faculty status:', error);
-            setError(error.response?.data?.message || 'Error updating faculty status');
-            setTimeout(() => setError(''), 3000);
-        }
+        });
     };
 
     return (
@@ -274,81 +247,101 @@ const FacultyRecords = () => {
                 </div>
             </div>
 
-            {/* Add Faculty Form */}
+            {/* Faculty Section */}
             <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Add New Faculty</h2>
-                <form onSubmit={handleAddFaculty} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input
-                            type="text"
-                            placeholder="Faculty ID"
-                            value={newFaculty.facultyId}
-                            onChange={(e) => setNewFaculty({...newFaculty, facultyId: e.target.value})}
-                            className="p-2 border rounded"
-                            required
-                        />
-                        <input
-                            type="text"
-                            placeholder="Faculty Name"
-                            value={newFaculty.facultyName}
-                            onChange={(e) => setNewFaculty({...newFaculty, facultyName: e.target.value})}
-                            className="p-2 border rounded"
-                            required
-                        />
-                        <select
-                            value={newFaculty.role}
-                            onChange={(e) => setNewFaculty({...newFaculty, role: e.target.value})}
-                            className="p-2 border rounded"
-                        >
-                            <option value="faculty">Faculty</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                <h2 className="text-xl font-semibold mb-4">Faculty Members</h2>
+
+                {/* Add Faculty Form */}
+                <form onSubmit={handleAddFaculty} className="flex gap-4 mb-6">
+                    <input
+                        type="text"
+                        value={newFaculty.facultyId}
+                        onChange={(e) => setNewFaculty({...newFaculty, facultyId: e.target.value})}
+                        placeholder="Faculty ID"
+                        className="p-2 border rounded"
+                        required
+                    />
+                    <input
+                        type="text"
+                        value={newFaculty.facultyName}
+                        onChange={(e) => setNewFaculty({...newFaculty, facultyName: e.target.value})}
+                        placeholder="Faculty Name"
+                        className="p-2 border rounded"
+                        required
+                    />
+                    <select
+                        value={newFaculty.role}
+                        onChange={(e) => setNewFaculty({...newFaculty, role: e.target.value})}
+                        className="p-2 border rounded"
+                    >
+                        <option value="faculty">Faculty</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Add Faculty
                     </button>
                 </form>
-            </div>
 
-            {/* Faculty List - Update the table to include Remove button */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Faculty Members</h2>
-                {loading ? (
-                    <div>Loading faculty data...</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-2">Faculty ID</th>
-                                    <th className="px-4 py-2">Name</th>
-                                    <th className="px-4 py-2">Role</th>
-                                    <th className="px-4 py-2">Books Issued</th>
-                                    <th className="px-4 py-2">Actions</th>
+                {/* Bulk Delete Button */}
+                <div className="mb-4">
+                    <button
+                        onClick={handleRemoveFaculty}
+                        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                        disabled={selectedFacultyIds.length === 0}
+                    >
+                        Remove Selected Faculty
+                    </button>
+                </div>
+
+                {/* Faculty Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-4 py-2">
+                                    <input
+                                        type="checkbox"
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedFacultyIds(faculty.map(f => f.facultyId));
+                                            } else {
+                                                setSelectedFacultyIds([]);
+                                            }
+                                        }}
+                                    />
+                                </th>
+                                <th className="px-4 py-2">Faculty ID</th>
+                                <th className="px-4 py-2">Name</th>
+                                <th className="px-4 py-2">Role</th>
+                                <th className="px-4 py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {faculty.map(f => (
+                                <tr key={f.facultyId}>
+                                    <td className="px-4 py-2 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedFacultyIds.includes(f.facultyId)}
+                                            onChange={() => handleFacultySelect(f.facultyId)}
+                                        />
+                                    </td>
+                                    <td className="px-4 py-2 text-center">{f.facultyId}</td>
+                                    <td className="px-4 py-2 text-center">{f.facultyName}</td>
+                                    <td className="px-4 py-2 text-center">{f.role}</td>
+                                    <td className="px-4 py-2 text-center">
+                                        <button
+                                            onClick={() => handleToggleFacultyStatus(f.facultyId, f.status)}
+                                            className="text-blue-600 hover:text-blue-800"
+                                        >
+                                            {f.status === 'active' ? 'Deactivate' : 'Activate'}
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {faculty.map((member) => (
-                                    <tr key={member._id || member.facultyId} className="border-t">
-                                        <td className="px-4 py-2">{member.facultyId}</td>
-                                        <td className="px-4 py-2">{member.facultyName}</td>
-                                        <td className="px-4 py-2">{member.role}</td>
-                                        <td className="px-4 py-2">{member.currentlyIssuedBooks?.length || 0}</td>
-                                        <td className="px-4 py-2">
-                                            <button
-                                                onClick={() => handleRemoveFaculty(member.facultyId)}
-                                                className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-600 hover:bg-red-50"
-                                                disabled={member.currentlyIssuedBooks?.length > 0}
-                                            >
-                                                Remove
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

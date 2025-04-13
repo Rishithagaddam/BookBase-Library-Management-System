@@ -21,7 +21,7 @@ const App = () => {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password/:token" element={<ResetPassword />} />
                     <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
-                    <Route path="/faculty/edit-profile" element={<EditProfile />} />
+                    <Route path="/user/edit-profile" element={<EditProfile />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* Add this route */}
                 </Routes>
             </Router>

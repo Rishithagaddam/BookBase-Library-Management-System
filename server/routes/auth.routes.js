@@ -23,13 +23,18 @@ const upload = multer({ storage });
 
 // Auth routes
 router.post('/signup', async (req, res) => {
-    const { username, facultyId, email, password } = req.body;
-
     try {
+        const { facultyId, email, password } = req.body;
+
+        const existingFaculty = await Faculty.findOne({ facultyId });
+
+        if (!existingFaculty) {
+            return res.status(404).json({ message: "Faculty ID not found in database" });
+        }
+
         // Check if user already exists
         const existingUser = await User.findOne({
             $or: [
-                { username },
                 { facultyId },
                 { email }
             ]
@@ -37,13 +42,13 @@ router.post('/signup', async (req, res) => {
 
         if (existingUser) {
             return res.status(400).json({
-                message: 'User already exists with the provided username, faculty ID, or email'
+                message: 'User already exists with the provided faculty ID, or email'
             });
         }
 
         // Create new user
         const newUser = new User({
-            username,
+            username: existingFaculty.facultyName,
             facultyId,
             email,
             password // Password will be hashed by the pre-save hook

@@ -18,7 +18,7 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
+            setUserData(JSON.parse(localStorage.getItem('user')));
             
             const [
                 hoursResponse, 
@@ -28,7 +28,7 @@ const Dashboard = () => {
             ] = await Promise.all([
                 axios.get('http://localhost:5000/api/admin/settings/working-hours'),
                 axios.get('http://localhost:5000/api/admin/settings/holidays'),
-                axios.get(`http://localhost:5000/api/faculty/books/issued/${user.facultyId}`),
+                axios.get(`http://localhost:5000/api/faculty/books/issued/${userData.facultyId}`),
                 axios.get('http://localhost:5000/api/broadcasts')
             ]);
 
@@ -53,12 +53,14 @@ const Dashboard = () => {
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-md">
-                <h1 className="text-3xl font-bold mb-2">
-                    Welcome back, {userData?.facultyName}! 👋
-                </h1>
-                <p>Faculty ID: {userData?.facultyId}</p>
-            </div>
+            {userData && (
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-md">
+                    <h1 className="text-3xl font-bold mb-2">
+                        Welcome back, {userData?.name}! 👋 {/* Access 'name' since that's stored in localStorage */}
+                    </h1>
+                    <p>Faculty ID: {userData?.facultyId}</p>
+                </div>
+            )}
 
             {/* Important Broadcasts */}
             {broadcasts.length > 0 && (

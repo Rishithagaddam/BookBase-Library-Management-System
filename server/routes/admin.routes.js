@@ -83,30 +83,41 @@ router.post('/faculty', async (req, res) => {
 });
 
 // Remove faculty by facultyId (not _id)
-router.delete('/faculty/:facultyId', async (req, res) => {
+router.delete('/faculty', async (req, res) => {
     try {
-        const faculty = await Faculty.findOne({ facultyId: req.params.facultyId });
-        
-        if (!faculty) {
-            return res.status(404).json({ message: 'Faculty not found' });
+        const facultyIds = req.body.facultyIds; // Array of faculty IDs to delete
+
+        if (!Array.isArray(facultyIds) || facultyIds.length === 0) {
+            return res.status(400).json({ message: 'No faculty IDs provided' });
         }
 
-        if (faculty.currentlyIssuedBooks?.length > 0) {
-            return res.status(400).json({ message: 'Cannot remove faculty with issued books' });
+        // Loop through faculty IDs to check and delete each one
+        for (const facultyId of facultyIds) {
+            const faculty = await Faculty.findOne({ facultyId });
+
+            if (!faculty) {
+                return res.status(404).json({ message: `Faculty with ID ${facultyId} not found` });
+            }
+
+            // Check if the faculty has any currently issued books
+            if (Array.isArray(faculty.currentlyIssuedBooks) && faculty.currentlyIssuedBooks.length > 0) {
+                return res.status(400).json({ message: `Cannot remove faculty with ID ${facultyId} as they have issued books` });
+            }
+
+            // Delete faculty and user associated with the facultyId
+            await Promise.all([
+                Faculty.deleteOne({ facultyId }),
+                User.deleteOne({ facultyId })
+            ]);
         }
 
-        // Delete from both Faculty and User collections
-        await Promise.all([
-            Faculty.deleteOne({ facultyId: req.params.facultyId }),
-            User.deleteOne({ facultyId: req.params.facultyId }) // Add this line
-        ]);
-
-        res.status(200).json({ message: 'Faculty removed successfully from all tables' });
+        res.status(200).json({ message: 'Faculties removed successfully from all tables' });
     } catch (error) {
-        console.error('Error removing faculty:', error);
+        console.error('Error removing faculty:', error.stack); // Log error stack for better debugging
         res.status(500).json({ message: 'Error removing faculty', error: error.message });
     }
 });
+
 
 router.patch('/faculty/:facultyId/status', async (req, res) => {
     try {

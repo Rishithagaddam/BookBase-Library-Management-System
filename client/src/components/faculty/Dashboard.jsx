@@ -12,7 +12,6 @@ const Dashboard = () => {
     const [broadcasts, setBroadcasts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
     useEffect(() => {
         fetchDashboardData();
     }, []);
@@ -50,9 +49,6 @@ const Dashboard = () => {
             setLoading(false);
         }
     };
-
-    if (loading) return <div>Loading dashboard...</div>;
-    if (error) return <div className="text-red-600">{error}</div>;
 
     return (
         <div className="space-y-6">

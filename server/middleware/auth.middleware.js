@@ -31,15 +31,3 @@ exports.isAdmin = async (req, res, next) => {
         return res.status(500).json({ message: error.message });
     }
 };
-
-const isFaculty = async (req, res, next) => {
-    try {
-        const faculty = await Faculty.findOne({ facultyId: req.user.facultyId });
-        if (!faculty) {
-            return res.status(403).json({ message: 'Access denied. Faculty only.' });
-        }
-        next();
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};

@@ -21,11 +21,9 @@ const isFaculty = async (req, res, next) => {
 };
 
 // Get faculty dashboard data
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard/:facultyId', async (req, res) => {
     try {
-        // Changed: Get facultyId from query parameters
-        const { facultyId } = req.query;
-
+        const { facultyId } = req.params;
         if (!facultyId) {
             return res.status(400).json({ message: 'Invalid user data: facultyId is missing' });
         }

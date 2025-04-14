@@ -5,6 +5,7 @@ const Book = require('../models/book');
 const Feedback = require('../models/feedback');
 const Holiday = require('../models/settings');
 const User = require('../models/user');
+const Settings = require('../models/settings');
 
 // Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -189,8 +190,13 @@ router.put('/feedbacks/:id/respond', async (req, res) => {
 // Get working hours
 router.get('/settings/working-hours', async (req, res) => {
     try {
-        // Default working hours if not set
-        res.json({ start: '09:00', end: '17:00' });
+        const settings = await Settings.findOne();
+        if (settings) {
+            res.json(settings.workingHours);
+        } else {
+            // Default working hours if not set
+            res.json({ start: '09:00', end: '17:00' });
+        }
     } catch (error) {
         console.error('Error fetching working hours:', error);
         res.status(500).json({ message: 'Server error' });
@@ -201,8 +207,14 @@ router.get('/settings/working-hours', async (req, res) => {
 router.post('/settings/working-hours', async (req, res) => {
     try {
         const { start, end } = req.body;
-        // Save to database if you have a settings model
-        res.json({ start, end });
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings({ workingHours: { start, end } });
+        } else {
+            settings.workingHours = { start, end };
+        }
+        await settings.save();
+        res.json(settings.workingHours);
     } catch (error) {
         console.error('Error updating working hours:', error);
         res.status(500).json({ message: 'Server error' });

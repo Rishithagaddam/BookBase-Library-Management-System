@@ -4,11 +4,6 @@ import axios from 'axios';
 const FacultyRecords = () => {
     const [faculty, setFaculty] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [holidays, setHolidays] = useState([]);
-    const [newHoliday, setNewHoliday] = useState({
-        date: '',
-        description: ''
-    });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [newFaculty, setNewFaculty] = useState({
@@ -20,7 +15,6 @@ const FacultyRecords = () => {
 
     useEffect(() => {
         fetchFacultyData();
-        fetchHolidays();
     }, []);
 
     const fetchFacultyData = async () => {
@@ -31,41 +25,6 @@ const FacultyRecords = () => {
         } catch (error) {
             setError('Error fetching faculty data');
             setLoading(false);
-        }
-    };
-
-    const fetchHolidays = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/admin/settings/holidays');
-            setHolidays(response.data);
-        } catch (error) {
-            console.error('Error fetching holidays:', error);
-        }
-    };
-
-    const handleAddHoliday = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:5000/api/admin/settings/holidays', newHoliday);
-            setHolidays([...holidays, response.data]);
-            setNewHoliday({ date: '', description: '' });
-            setSuccess('Holiday added successfully');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (error) {
-            setError('Error adding holiday');
-            setTimeout(() => setError(''), 3000);
-        }
-    };
-
-    const handleDeleteHoliday = async (holidayId) => {
-        try {
-            await axios.delete(`http://localhost:5000/api/admin/settings/holidays/${holidayId}`);
-            setHolidays(holidays.filter(h => h._id !== holidayId));
-            setSuccess('Holiday deleted successfully');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (error) {
-            setError('Error deleting holiday');
-            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -135,66 +94,6 @@ const FacultyRecords = () => {
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold mb-6">🧑‍🏫 Faculty Records</h1>
-
-            {error && (
-                <div className="bg-red-100 text-red-600 p-3 rounded mb-4">{error}</div>
-            )}
-            {success && (
-                <div className="bg-green-100 text-green-600 p-3 rounded mb-4">{success}</div>
-            )}
-
-            {/* Holidays Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Library Holidays</h2>
-                <form onSubmit={handleAddHoliday} className="flex gap-4 mb-4">
-                    <input
-                        type="date"
-                        value={newHoliday.date}
-                        onChange={(e) => setNewHoliday({...newHoliday, date: e.target.value})}
-                        className="p-2 border rounded"
-                        required
-                    />
-                    <input
-                        type="text"
-                        value={newHoliday.description}
-                        onChange={(e) => setNewHoliday({...newHoliday, description: e.target.value})}
-                        placeholder="Holiday Description"
-                        className="p-2 border rounded flex-1"
-                        required
-                    />
-                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                        Add Holiday
-                    </button>
-                </form>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-4 py-2">Date</th>
-                                <th className="px-4 py-2">Description</th>
-                                <th className="px-4 py-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {holidays.map((holiday) => (
-                                <tr key={holiday._id} className="border-t">
-                                    <td className="px-4 py-2">{new Date(holiday.date).toLocaleDateString()}</td>
-                                    <td className="px-4 py-2">{holiday.description}</td>
-                                    <td className="px-4 py-2">
-                                        <button
-                                            onClick={() => handleDeleteHoliday(holiday._id)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
             {/* Faculty Section */}
             <div className="bg-white p-6 rounded-lg shadow-md">

@@ -33,8 +33,8 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, setActiveFeature }) => {
                     />
 
                     <div>
-                        <h1 className="text-2xl font-bold leading-tight">Library</h1>
-                        <h2 className="text-lg font-medium leading-tight">Management</h2>
+                        <h1 className="text-2xl font-bold leading-tight">Department Library</h1>
+                        <h2 className="text-lg font-medium leading-tight">VNRVJIET</h2>
                     </div>
                 </div>
             </div>

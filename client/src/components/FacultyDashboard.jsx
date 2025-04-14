@@ -10,7 +10,7 @@ import ExploreArchives from './faculty/ExploreArchives';
 import EditProfile from './faculty/EditProfile';
 import Settings from './faculty/Settings';
 import FacultyFeedback from './faculty/FacultyFeedback';
-import BookWishlist from './faculty/BookWishlist';
+
 import FacultyForum from './faculty/FacultyForum';
 
 const FacultyDashboard = () => {
@@ -27,7 +27,7 @@ const FacultyDashboard = () => {
         { name: '👤 Edit Profile', component: <EditProfile /> },
         { name: '⚙️ Settings', component: <Settings /> },
         { name: '📝 Feedback', component: <FacultyFeedback /> },
-        { name: '📚 Book Wishlist', component: <BookWishlist /> },
+       // { name: '📚 Book Wishlist', component: <BookWishlist /> },
         { name: '💬 Forum', component: <FacultyForum /> },
     ];
 

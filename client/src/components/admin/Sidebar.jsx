@@ -1,7 +1,7 @@
 import React from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
 
-const Sidebar = ({ features, activeFeature, setActiveFeature, handleLogout, setIsSidebarOpen }) => {
+const Sidebar = ({ features, activeFeature, setActiveFeature, setIsSidebarOpen }) => {
     return (
         <div className="w-64 bg-gray-800 text-white p-6 relative min-h-screen shadow-lg">
             {/* Close Button */}
@@ -31,13 +31,7 @@ const Sidebar = ({ features, activeFeature, setActiveFeature, handleLogout, setI
                     ))}
                 </ul>
                 
-                {/* Logout Button */}
-                <button
-                    onClick={handleLogout}
-                    className="mt-8 w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200"
-                >
-                    🚪 Logout
-                </button>
+               
             </div>
         </div>
     );

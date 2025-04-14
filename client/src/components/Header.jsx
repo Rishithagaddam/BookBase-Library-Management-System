@@ -1,23 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars } from 'react-icons/fa'; // Keep the menu icon
+import { FaBars } from 'react-icons/fa';
 
-const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
+const Header = ({ isSidebarOpen, setIsSidebarOpen, setActiveFeature }) => {
     const navigate = useNavigate();
-    
+
     const handleMenuClick = () => {
-        setIsSidebarOpen(!isSidebarOpen); // Simply toggle the value
+        setIsSidebarOpen(!isSidebarOpen);
     };
-    
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/login');
     };
-    
+
     return (
         <header className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
             <div className="flex items-center">
-                {/* Show menu button only when sidebar is closed */}
                 {!isSidebarOpen && (
                     <button
                         onClick={handleMenuClick}
@@ -27,7 +26,6 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
                     </button>
                 )}
                 <div className="flex items-center">
-                    {/* Colorful Book Icon and Heading */}
                     <img
                         src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png"
                         alt="Book Icon"
@@ -42,17 +40,17 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
             </div>
             <div className="flex items-center space-x-4">
                 <button
-                    onClick={() => navigate('/user/edit-profile')}
+                    onClick={() => setActiveFeature('👤 Edit Profile')}
                     className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center shadow-sm border border-blue-400"
                 >
-                    <span className="mr-2 text-lg">👤</span> 
+                    <span className="mr-2 text-lg">👤</span>
                     <span className="font-medium">Profile</span>
                 </button>
                 <button
                     onClick={handleLogout}
                     className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 flex items-center shadow-sm border border-red-400"
                 >
-                    <span className="mr-2 text-lg">🚪</span> 
+                    <span className="mr-2 text-lg">🚪</span>
                     <span className="font-medium">Logout</span>
                 </button>
             </div>

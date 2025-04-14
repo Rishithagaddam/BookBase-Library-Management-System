@@ -12,6 +12,7 @@ const Dashboard = () => {
     const [broadcasts, setBroadcasts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
     useEffect(() => {
         fetchDashboardData();
     }, []);
@@ -20,10 +21,10 @@ const Dashboard = () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             setUserData(user);
-            
+
             const [
-                hoursResponse, 
-                holidaysResponse, 
+                hoursResponse,
+                holidaysResponse,
                 issuedBooksResponse,
                 broadcastsResponse
             ] = await Promise.all([
@@ -37,7 +38,7 @@ const Dashboard = () => {
                 workingHours: hoursResponse.data,
                 holidays: holidaysResponse.data,
                 issuedBooks: issuedBooksResponse.data.currentlyIssuedBooks,
-                dueBooks: issuedBooksResponse.data.currentlyIssuedBooks.filter(book => 
+                dueBooks: issuedBooksResponse.data.currentlyIssuedBooks.filter(book =>
                     new Date(book.dueDate) < new Date()
                 )
             });
@@ -57,7 +58,7 @@ const Dashboard = () => {
             {userData && (
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-md">
                     <h1 className="text-3xl font-bold mb-2">
-                        Welcome back, {userData?.name}! 👋 
+                        Welcome back, {userData?.name}! 👋
                     </h1>
                     <p>Faculty ID: {userData?.facultyId}</p>
                 </div>
@@ -71,11 +72,11 @@ const Dashboard = () => {
                     </h2>
                     <div className="space-y-4">
                         {broadcasts.map(broadcast => (
-                            <div 
-                                key={broadcast._id} 
+                            <div
+                                key={broadcast._id}
                                 className={`p-4 rounded-lg ${
-                                    broadcast.priority === 'high' 
-                                        ? 'bg-red-100 border-l-4 border-red-500' 
+                                    broadcast.priority === 'high'
+                                        ? 'bg-red-100 border-l-4 border-red-500'
                                         : 'bg-white'
                                 }`}
                             >
@@ -132,8 +133,8 @@ const Dashboard = () => {
                         .filter(holiday => new Date(holiday.date) >= new Date())
                         .sort((a, b) => new Date(a.date) - new Date(b.date))
                         .map(holiday => (
-                            <div 
-                                key={holiday._id} 
+                            <div
+                                key={holiday._id}
                                 className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 <div>

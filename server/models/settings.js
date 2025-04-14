@@ -6,8 +6,6 @@ const holidaySchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Holiday', holidaySchema);
-
 const settingsSchema = new mongoose.Schema({
     workingHours: {
         start: { type: String, required: true },
@@ -15,4 +13,7 @@ const settingsSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Settings', settingsSchema);
+module.exports = {
+    Holiday: mongoose.model('Holiday', holidaySchema),
+    Settings: mongoose.model('Settings', settingsSchema)
+};

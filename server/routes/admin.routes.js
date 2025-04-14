@@ -3,9 +3,49 @@ const router = express.Router();
 const Faculty = require('../models/faculty');
 const Book = require('../models/book');
 const Feedback = require('../models/feedback');
-const Holiday = require('../models/settings');
+
 const User = require('../models/user');
-const Settings = require('../models/settings');
+
+const { Settings } = require('../models/settings');
+const { Holiday } = require('../models/settings');
+
+// Get all holidays
+router.get('/settings/holidays', async (req, res) => {
+    try {
+        const holidays = await Holiday.find();
+        res.json(holidays);
+    } catch (error) {
+        console.error('Error fetching holidays:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Add a holiday
+router.post('/settings/holidays', async (req, res) => {
+    try {
+        const { date, description } = req.body;
+        const newHoliday = new Holiday({ date, description });
+        await newHoliday.save();
+        res.status(201).json(newHoliday);
+    } catch (error) {
+        console.error('Error adding holiday:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete a holiday
+router.delete('/settings/holidays/:id', async (req, res) => {
+    try {
+        const holiday = await Holiday.findByIdAndDelete(req.params.id);
+        if (!holiday) {
+            return res.status(404).json({ message: 'Holiday not found' });
+        }
+        res.json({ message: 'Holiday removed successfully' });
+    } catch (error) {
+        console.error('Error removing holiday:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // Middleware to check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -194,8 +234,7 @@ router.get('/settings/working-hours', async (req, res) => {
         if (settings) {
             res.json(settings.workingHours);
         } else {
-            // Default working hours if not set
-            res.json({ start: '09:00', end: '17:00' });
+            res.json({ start: '09:00', end: '17:00' }); // Default working hours
         }
     } catch (error) {
         console.error('Error fetching working hours:', error);
@@ -218,43 +257,6 @@ router.post('/settings/working-hours', async (req, res) => {
     } catch (error) {
         console.error('Error updating working hours:', error);
         res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Get holidays
-router.get('/settings/holidays', async (req, res) => {
-    try {
-        const holidays = await Holiday.find().sort({ date: 1 });
-        res.json(holidays);
-    } catch (error) {
-        console.error('Error fetching holidays:', error);
-        res.status(500).json({ message: 'Error fetching holidays' });
-    }
-});
-
-// Add holiday
-router.post('/settings/holidays', async (req, res) => {
-    try {
-        const holiday = new Holiday(req.body);
-        await holiday.save();
-        res.status(201).json(holiday);
-    } catch (error) {
-        console.error('Error adding holiday:', error);
-        res.status(500).json({ message: 'Error adding holiday' });
-    }
-});
-
-// Remove holiday
-router.delete('/settings/holidays/:id', async (req, res) => {
-    try {
-        const holiday = await Holiday.findByIdAndDelete(req.params.id);
-        if (!holiday) {
-            return res.status(404).json({ message: 'Holiday not found' });
-        }
-        res.json({ message: 'Holiday removed successfully' });
-    } catch (error) {
-        console.error('Error removing holiday:', error);
-        res.status(500).json({ message: 'Error removing holiday' });
     }
 });
 

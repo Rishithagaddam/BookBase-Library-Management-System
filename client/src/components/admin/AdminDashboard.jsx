@@ -8,6 +8,7 @@ import BookInventory from './BookInventory';
 import FeedbackManager from './FeedbackManager';
 import BroadcastMessaging from './BroadcastMessaging';
 import LibrarySettings from './LibrarySettings';
+import EditProfile from '../faculty/EditProfile';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
         { name: '📝 Feedback Manager', component: <FeedbackManager /> },
         { name: '💬 Broadcast Messages', component: <BroadcastMessaging /> },
         { name: '⚙️ Library Settings', component: <LibrarySettings /> },
+        { name: '👤 Edit Profile', component: <EditProfile /> },
     ];
 
     const handleFeatureChange = (featureName) => {
@@ -37,6 +39,7 @@ const AdminDashboard = () => {
             <Header
                 isSidebarOpen={isSidebarOpen}
                 setIsSidebarOpen={setIsSidebarOpen}
+                setActiveFeature={handleFeatureChange}
                 isAdmin={true}
             />
 

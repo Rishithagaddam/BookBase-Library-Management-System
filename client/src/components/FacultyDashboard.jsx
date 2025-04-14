@@ -49,10 +49,10 @@ const FacultyDashboard = () => {
         <div className="flex flex-col min-h-screen bg-gray-100">
             {/* Header */}
             <Header
-    isSidebarOpen={isSidebarOpen}
-    setIsSidebarOpen={setIsSidebarOpen}
-    setActiveFeature={handleFeatureChange}
-/>
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                setActiveFeature={handleFeatureChange}
+            />
 
 
             <div className="flex flex-1">

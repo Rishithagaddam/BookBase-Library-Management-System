@@ -85,14 +85,17 @@ const EditProfile = () => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
             <div className="p-6">
-                <h1 className="text-3xl font-bold mb-6">Edit Profile</h1>
+                {/* <h1 className="text-3xl font-bold mb-6">Edit Profile</h1> */}
                 <div className="flex justify-center items-center flex-1 p-6">
                     <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-2xl border border-gray-100">
-                        <h1 className="text-3xl font-bold mb-6 text-indigo-800 flex items-center">
-                            <span className="mr-2">✨</span> 
+                       
+                        <div className="text-center">
+                        <h1 className="text-3xl font-bold mb-2 text-indigo-800  items-center">    
                             Faculty Profile
                             <span className="ml-2">✨</span>
                         </h1>
+                            <p className="mt-2 mb-2">Your profile information</p>
+                        </div>
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Profile Photo */}

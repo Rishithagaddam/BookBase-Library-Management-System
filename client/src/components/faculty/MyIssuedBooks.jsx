@@ -18,7 +18,7 @@ const MyIssuedBooks = () => {
                 }
 
                 // Changed: Use query parameters instead of request body for GET request
-                const response = await axios.get(`http://localhost:5000/api/faculty/dashboard?facultyId=${facultyId}`, {
+                const response = await axios.get(`http://localhost:5000/api/faculty/dashboard/${user.facultyId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },

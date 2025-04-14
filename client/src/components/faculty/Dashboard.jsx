@@ -36,7 +36,7 @@ const Dashboard = () => {
             setLibraryInfo({
                 workingHours: hoursResponse.data,
                 holidays: holidaysResponse.data,
-                issuedBooks: issuedBooksResponse.data,
+                issuedBooks: issuedBooksResponse.data.currentlyIssuedBooks,
                 dueBooks: issuedBooksResponse.data.currentlyIssuedBooks.filter(book => 
                     new Date(book.dueDate) < new Date()
                 )

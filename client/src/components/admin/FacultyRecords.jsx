@@ -4,10 +4,6 @@ import axios from 'axios';
 const FacultyRecords = () => {
     const [faculty, setFaculty] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [workingHours, setWorkingHours] = useState({
-        start: '09:00',
-        end: '17:00'
-    });
     const [holidays, setHolidays] = useState([]);
     const [newHoliday, setNewHoliday] = useState({
         date: '',
@@ -24,7 +20,6 @@ const FacultyRecords = () => {
 
     useEffect(() => {
         fetchFacultyData();
-        fetchWorkingHours();
         fetchHolidays();
     }, []);
 
@@ -39,33 +34,12 @@ const FacultyRecords = () => {
         }
     };
 
-    const fetchWorkingHours = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/admin/settings/working-hours');
-            setWorkingHours(response.data);
-        } catch (error) {
-            console.error('Error fetching working hours:', error);
-        }
-    };
-
     const fetchHolidays = async () => {
         try {
             const response = await axios.get('http://localhost:5000/api/admin/settings/holidays');
             setHolidays(response.data);
         } catch (error) {
             console.error('Error fetching holidays:', error);
-        }
-    };
-
-    const handleWorkingHoursSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post('http://localhost:5000/api/admin/settings/working-hours', workingHours);
-            setSuccess('Working hours updated successfully');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (error) {
-            setError('Error updating working hours');
-            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -168,31 +142,6 @@ const FacultyRecords = () => {
             {success && (
                 <div className="bg-green-100 text-green-600 p-3 rounded mb-4">{success}</div>
             )}
-
-            {/* Working Hours Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Library Working Hours</h2>
-                <form onSubmit={handleWorkingHoursSubmit} className="flex gap-4">
-                    <input
-                        type="time"
-                        value={workingHours.start}
-                        onChange={(e) => setWorkingHours({...workingHours, start: e.target.value})}
-                        className="p-2 border rounded"
-                        required
-                    />
-                    <span className="self-center">to</span>
-                    <input
-                        type="time"
-                        value={workingHours.end}
-                        onChange={(e) => setWorkingHours({...workingHours, end: e.target.value})}
-                        className="p-2 border rounded"
-                        required
-                    />
-                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Update Hours
-                    </button>
-                </form>
-            </div>
 
             {/* Holidays Section */}
             <div className="bg-white p-6 rounded-lg shadow-md">

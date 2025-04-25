@@ -161,7 +161,6 @@ const FacultyRecords = () => {
                                 <th className="px-4 py-2">Faculty ID</th>
                                 <th className="px-4 py-2">Name</th>
                                 <th className="px-4 py-2">Role</th>
-                                <th className="px-4 py-2">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -177,14 +176,6 @@ const FacultyRecords = () => {
                                     <td className="px-4 py-2 text-center">{f.facultyId}</td>
                                     <td className="px-4 py-2 text-center">{f.facultyName}</td>
                                     <td className="px-4 py-2 text-center">{f.role}</td>
-                                    <td className="px-4 py-2 text-center">
-                                        <button
-                                            onClick={() => handleToggleFacultyStatus(f.facultyId, f.status)}
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            {f.status === 'active' ? 'Deactivate' : 'Activate'}
-                                        </button>
-                                    </td>
                                 </tr>
                             ))}
                         </tbody>

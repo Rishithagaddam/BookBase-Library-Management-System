@@ -184,7 +184,7 @@ const ViewAllBooks = () => {
                             <th className="border border-gray-300 px-4 py-2">Category</th>
                             <th className="border border-gray-300 px-4 py-2">Publisher</th> {/* Added Publisher Column */}
                             <th className="border border-gray-300 px-4 py-2">Availability</th>
-                            <th className="border border-gray-300 px-4 py-2">Action</th>
+                            <th className="border border-gray-300 px-4 py-2">Expected Return</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -203,20 +203,10 @@ const ViewAllBooks = () => {
                                     )}
                                 </td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                    {book.status === 'available' ? (
-                                        <button
-                                            onClick={() => {
-                                                setSelectedBook(book);
-                                                setShowModal(true);
-                                            }}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            Issue
-                                        </button>
+                                    {book.status === 'issued' && book.issuedDate ? (
+                                        new Date(new Date(book.issuedDate).setDate(new Date(book.issuedDate).getDate() + 5)).toLocaleDateString()
                                     ) : (
-                                        <span className="text-gray-500">
-                                            Expected Return: {new Date(book.issuedDate).setDate(new Date(book.issuedDate).getDate() + 5) ? new Date(new Date(book.issuedDate).setDate(new Date(book.issuedDate).getDate() + 5)).toLocaleDateString() : 'N/A'}
-                                        </span>
+                                        ''
                                     )}
                                 </td>
                             </tr>

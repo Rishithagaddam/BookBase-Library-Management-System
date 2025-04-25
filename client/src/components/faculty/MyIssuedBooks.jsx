@@ -17,7 +17,7 @@ const MyIssuedBooks = () => {
                     return;
                 }
 
-                // Changed: Use query parameters instead of request body for GET request
+                // Fetch issued books using GET request
                 const response = await axios.get(`http://localhost:5000/api/faculty/dashboard/${user.facultyId}`, {
                     headers: {
                         'Content-Type': 'application/json',
@@ -37,36 +37,18 @@ const MyIssuedBooks = () => {
         fetchIssuedBooks();
     }, []);
 
-    const handleReturnBook = async (bookId) => {
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            
-            const response = await axios.put(
-                `http://localhost:5000/api/faculty/books/return/${bookId}`,
-                {
-                    facultyId: user.facultyId
-                }
-            );
-
-            if (response.status === 200) {
-                alert(response.data.message);
-                // Remove the returned book from the list
-                setIssuedBooks((prevBooks) =>
-                    prevBooks.filter((book) => book._id !== bookId)
-                );
-                setTotalIssuedBooks((prevCount) => prevCount - 1);
-            }
-        } catch (error) {
-            console.error('Error returning book:', error.response?.data?.message || error.message);
-            alert('Failed to return the book.');
-        }
-    };
-
     const calculateDaysSinceIssued = (issuedDate) => {
         const issued = new Date(issuedDate);
         const today = new Date();
         const differenceInTime = today - issued;
         return Math.floor(differenceInTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+    };
+
+    // Calculate return date (5 days after issue date)
+    const calculateReturnDate = (issuedDate) => {
+        const issued = new Date(issuedDate);
+        issued.setDate(issued.getDate() + 5); // Add 5 days
+        return issued.toLocaleDateString(); // Return the return date in locale date format
     };
 
     return (
@@ -98,12 +80,13 @@ const MyIssuedBooks = () => {
                             <th className="border border-gray-300 px-4 py-2">Category</th>
                             <th className="border border-gray-300 px-4 py-2">Issued Date</th>
                             <th className="border border-gray-300 px-4 py-2">Days Since Issued</th>
-                            <th className="border border-gray-300 px-4 py-2">Action</th>
+                            <th className="border border-gray-300 px-4 py-2">Return Date</th> {/* Updated column */}
                         </tr>
                     </thead>
                     <tbody>
                         {issuedBooks.map((book, index) => {
                             const daysSinceIssued = calculateDaysSinceIssued(book.issuedDate);
+                            const returnDate = calculateReturnDate(book.issuedDate); // Calculate return date
                             return (
                                 <tr
                                     key={book.bookId}
@@ -119,14 +102,7 @@ const MyIssuedBooks = () => {
                                         {new Date(book.issuedDate).toLocaleDateString()}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2">{daysSinceIssued} days</td>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        <button
-                                            onClick={() => handleReturnBook(book._id)} // Changed from book.bookId to book._id
-                                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                                        >
-                                            Return
-                                        </button>
-                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2">{returnDate}</td> {/* Display calculated return date */}
                                 </tr>
                             );
                         })}

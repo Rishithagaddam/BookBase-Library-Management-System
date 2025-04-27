@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import { FaUserCircle, FaCamera } from 'react-icons/fa';
 import axios from 'axios';
+import '../App.css';
 
 const EditProfile = () => {
     const [profilePhoto, setProfilePhoto] = useState(null);
@@ -83,7 +84,7 @@ const EditProfile = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-100">
+        <div className="flex flex-col min-h-screen bg-customLightPink">
             <div className="p-6">
                 {/* <h1 className="text-3xl font-bold mb-6">Edit Profile</h1> */}
                 <div className="flex justify-center items-center flex-1 p-6">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../../App.css';
 
 const ViewAllBooks = () => {
     const [books, setBooks] = useState([]);
@@ -135,7 +136,7 @@ const ViewAllBooks = () => {
                     value={searchFilters.bookId}
                     onChange={handleSearchChange}
                     placeholder="Search by Book ID"
-                    className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="p-2 bg-white border border-customRed rounded-lg focus:outline-none focus:ring-2 focus:ring-white-400"
                 />
                 <input
                     type="text"
@@ -143,7 +144,7 @@ const ViewAllBooks = () => {
                     value={searchFilters.author}
                     onChange={handleSearchChange}
                     placeholder="Search by Author"
-                    className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="p-2 bg-white border border-customRed  rounded-lg focus:outline-none focus:ring-2 focus:ring-white-400"
                 />
                 <input
                     type="text"
@@ -151,7 +152,7 @@ const ViewAllBooks = () => {
                     value={searchFilters.category}
                     onChange={handleSearchChange}
                     placeholder="Search by Category"
-                    className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="p-2 bg-white border border-customRed  rounded-lg focus:outline-none focus:ring-2 focus:ring-white-400"
                 />
                 <input
                     type="text"
@@ -159,13 +160,13 @@ const ViewAllBooks = () => {
                     value={searchFilters.publisher}
                     onChange={handleSearchChange}
                     placeholder="Search by Publisher"
-                    className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="p-2 bg-white border border-customRed rounded-lg focus:outline-none focus:ring-2 focus:ring-white-400"
                 />
                 <select
                     name="status"
                     value={searchFilters.status}
                     onChange={handleSearchChange}
-                    className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="p-2 bg-white border border-customRed  rounded-lg focus:outline-none focus:ring-2 focus:ring-white-400"
                 >
                     <option value="">All Status</option>
                     <option value="available">Available</option>
@@ -177,7 +178,7 @@ const ViewAllBooks = () => {
             <div className="overflow-x-auto">
                 <table className="table-auto w-full border-collapse border border-gray-300">
                     <thead>
-                        <tr className="bg-gray-200">
+                        <tr className="bg-customRed">
                             <th className="border border-gray-300 px-4 py-2">Book ID</th>
                             <th className="border border-gray-300 px-4 py-2">Title</th>
                             <th className="border border-gray-300 px-4 py-2">Author</th>
@@ -189,7 +190,7 @@ const ViewAllBooks = () => {
                     </thead>
                     <tbody>
                         {currentBooks.map((book) => (
-                            <tr key={book._id} className="hover:bg-gray-100"> {/* Changed from book.bookId to book._id */}
+                            <tr key={book._id} className="bg-white hover:bg-gray-100"> {/* Changed from book.bookId to book._id */}
                                 <td className="border border-gray-300 px-4 py-2">{book.bookId}</td>
                                 <td className="border border-gray-300 px-4 py-2">{book.title}</td>
                                 <td className="border border-gray-300 px-4 py-2">{book.author}</td>

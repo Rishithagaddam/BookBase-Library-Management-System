@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../../App.css';
 
 const Dashboard = () => {
     const [userData, setUserData] = useState(null);
@@ -56,7 +57,7 @@ const Dashboard = () => {
         <div className="space-y-6">
             {/* Welcome Section */}
             {userData && (
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-md">
+                <div className="bg-gradient-to-r bg-white text-customRed p-6 rounded-lg shadow-md">
                     <h1 className="text-3xl font-bold mb-2">
                         Welcome back, {userData?.name}! 👋
                     </h1>
@@ -117,7 +118,7 @@ const Dashboard = () => {
                     {libraryInfo.workingHours && (
                         <div className="text-center">
                             <p className="text-gray-600">Open from</p>
-                            <p className="text-2xl font-bold text-blue-600">
+                            <p className="text-2xl font-bold text-customRed">
                                 {libraryInfo.workingHours.start} - {libraryInfo.workingHours.end}
                             </p>
                         </div>

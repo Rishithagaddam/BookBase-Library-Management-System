@@ -130,7 +130,7 @@ const LibrarySettings = () => {
             </div>
 
             {/* Holidays Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-lg shadow-md mt-5">
                 <h2 className="text-xl font-semibold mb-4">Library Holidays</h2>
                 <form onSubmit={handleAddHoliday} className="flex gap-4 mb-4">
                     <input
@@ -182,7 +182,7 @@ const LibrarySettings = () => {
                 </div>
             </div>
             
-            <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
+            <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mt-5">
                 <div className="space-y-6">
                     {/* Book Lending Settings */}
                     <div>

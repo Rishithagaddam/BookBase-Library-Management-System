@@ -23,7 +23,7 @@ const Sidebar = ({ features, activeFeature, setActiveFeature, handleLogout, setI
                             className={`cursor-pointer p-3 rounded-lg text-lg font-medium transition-all duration-300 ${
                                 activeFeature === feature.name
                                     ? 'bg-customPink text-white'
-                                    : 'hover:bg-customPeach'
+                                    : 'hover:bg-customLightPink'
                             }`}
                             onClick={() => setActiveFeature(feature.name)}
                         >

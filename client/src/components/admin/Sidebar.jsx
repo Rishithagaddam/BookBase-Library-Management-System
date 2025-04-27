@@ -1,9 +1,10 @@
 import React from 'react';
 import { AiOutlineClose } from 'react-icons/ai';
+import '../../App.css';
 
 const Sidebar = ({ features, activeFeature, setActiveFeature, setIsSidebarOpen }) => {
     return (
-        <div className="w-64 bg-gray-800 text-white p-6 relative min-h-screen shadow-lg">
+        <div className="w-64 bg-white text-black p-6 relative min-h-screen shadow-lg">
             {/* Close Button */}
             <button
                 onClick={() => setIsSidebarOpen(false)}
@@ -21,8 +22,8 @@ const Sidebar = ({ features, activeFeature, setActiveFeature, setIsSidebarOpen }
                             key={feature.name}
                             className={`cursor-pointer p-3 rounded-lg text-lg font-medium transition-all duration-300 ${
                                 activeFeature === feature.name
-                                    ? 'bg-blue-600 text-white'
-                                    : 'hover:bg-gray-700'
+                                    ? 'bg-customPink text-white'
+                                    : 'hover:bg-customLightPink'
                             }`}
                             onClick={() => setActiveFeature(feature.name)}
                         >

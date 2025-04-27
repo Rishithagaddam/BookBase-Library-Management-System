@@ -42,3 +42,7 @@
   .border-customRed {
     border-color: var(--customRed);
   }
+
+  .hover\:bg-customLightPink:hover {
+    background-color: var(--customLightPink);
+  }

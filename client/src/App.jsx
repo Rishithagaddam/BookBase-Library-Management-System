@@ -5,9 +5,9 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import FacultyDashboard from './components/FacultyDashboard';
+import FacultyDashboard from './components/faculty/FacultyDashboard';
 import AdminDashboard from './components/admin/AdminDashboard'; // Add this import
-import EditProfile from './components/faculty/EditProfile';
+import EditProfile from './components/EditProfile';
 import BroadcastNotification from './components/BroadcastNotification';
 
 const App = () => {

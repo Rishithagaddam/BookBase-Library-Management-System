@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './faculty/Sidebar';
-import Header from './Header';
-import Dashboard from './faculty/Dashboard';
-import ViewAllBooks from './faculty/ViewAllBooks';
-import MyIssuedBooks from './faculty/MyIssuedBooks';
-import DueReminders from './faculty/DueReminders';
-import ExploreArchives from './faculty/ExploreArchives';
-import EditProfile from './faculty/EditProfile';
-import Settings from './faculty/Settings';
-import FacultyFeedback from './faculty/FacultyFeedback';
+import Sidebar from './Sidebar';
+import Header from '../Header';
+import Dashboard from './Dashboard';
+import ViewAllBooks from './ViewAllBooks';
+import MyIssuedBooks from './MyIssuedBooks';
+import DueReminders from './DueReminders';
+import ExploreArchives from './ExploreArchives';
+import EditProfile from '../EditProfile';
+import Settings from './Settings';
+import FacultyFeedback from './FacultyFeedback';
 
-import FacultyForum from './faculty/FacultyForum';
+import FacultyForum from './FacultyForum';
 
 const FacultyDashboard = () => {
     const navigate = useNavigate();

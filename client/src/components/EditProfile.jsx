@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../Header';
+import Header from './Header';
 import { FaUserCircle, FaCamera } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -92,7 +92,6 @@ const EditProfile = () => {
                         <div className="text-center">
                         <h1 className="text-3xl font-bold mb-2 text-indigo-800  items-center">    
                             Faculty Profile
-                            <span className="ml-2">✨</span>
                         </h1>
                             <p className="mt-2 mb-2">Your profile information</p>
                         </div>

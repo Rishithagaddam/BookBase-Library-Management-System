@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
+import './Header.css'
 
 const Header = ({ isSidebarOpen, setIsSidebarOpen, setActiveFeature }) => {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen, setActiveFeature }) => {
     };
 
     return (
-        <header className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+        <header className="text-white p-4 flex justify-between items-center shadow-md">
             <div className="flex items-center">
                 {!isSidebarOpen && (
                     <button

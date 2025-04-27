@@ -8,7 +8,7 @@ import BookInventory from './BookInventory';
 import FeedbackManager from './FeedbackManager';
 import BroadcastMessaging from './BroadcastMessaging';
 import LibrarySettings from './LibrarySettings';
-import EditProfile from '../faculty/EditProfile';
+import EditProfile from '../EditProfile';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();

@@ -20,7 +20,7 @@ const EditProfile = () => {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
                 try {
-                    const response = await axios.get(`http://localhost:5000/api/auth/profile/${user.facultyId}`);
+                    const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.facultyId}`);
                     setFormData({
                         username: response.data.username,
                         facultyId: response.data.facultyId,
@@ -28,7 +28,7 @@ const EditProfile = () => {
                         mobile: response.data.mobile || '',
                         profileImage: response.data.profileImage || '', // Fetch profileImage
                     });
-                    setProfilePhoto(response.data.profileImage ? `http://localhost:5000/${response.data.profileImage}` : null);
+                    setProfilePhoto(response.data.profileImage ? `${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}` : null);
                 } catch (error) {
                     console.error('Error fetching user details:', error.response?.data?.message || error.message);
                 }
@@ -50,7 +50,7 @@ const EditProfile = () => {
 
             try {
                 const response = await axios.put(
-                    `http://localhost:5000/api/auth/profile/${formData.facultyId}/image`,
+                    `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}/image`,
                     formData,
                     {
                         headers: {
@@ -58,7 +58,7 @@ const EditProfile = () => {
                         },
                     }
                 );
-                setProfilePhoto(`http://localhost:5000/${response.data.profileImage}`);
+                setProfilePhoto(`${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}`);
                 console.log('Profile image updated successfully:', response.data);
             } catch (error) {
                 console.error('Error uploading profile image:', error.response?.data?.message || error.message);
@@ -69,7 +69,7 @@ const EditProfile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`http://localhost:5000/api/auth/profile/${formData.facultyId}`, {
+            const response = await axios.put(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}`, {
                 username: formData.username,
                 email: formData.email,
                 mobile: formData.mobile,

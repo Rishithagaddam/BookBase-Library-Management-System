@@ -30,7 +30,7 @@ const FacultyForum = () => {
                     sort: sortBy
                 });
 
-                const response = await axios.get(`http://localhost:5000/api/faculty/forum/posts?${params}`);
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/posts?${params}`);
                 setPosts(response.data);
 
                 // Set initial liked posts
@@ -66,7 +66,7 @@ const FacultyForum = () => {
                 .filter(tag => tag); // Remove empty tags
 
             const response = await axios.post(
-                'http://localhost:5000/api/faculty/forum/posts',
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/posts`,
                 {
                     ...newPost,
                     tags: formattedTags,
@@ -100,7 +100,7 @@ const FacultyForum = () => {
     const handleReplySubmit = async (postId) => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            const response = await axios.post('http://localhost:5000/api/faculty/forum/replies', {
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/replies`, {
                 postId,
                 content: newReply[postId],
                 facultyId: user.facultyId
@@ -125,7 +125,7 @@ const FacultyForum = () => {
             }
 
             const response = await axios.put(
-                `http://localhost:5000/api/faculty/forum/posts/${postId}/like`,
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/posts/${postId}/like`,
                 {
                     facultyId: user.facultyId
                 }

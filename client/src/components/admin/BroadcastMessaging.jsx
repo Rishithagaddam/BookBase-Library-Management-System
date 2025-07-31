@@ -18,7 +18,7 @@ const BroadcastMessaging = () => {
 
     const fetchMessages = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/broadcasts');
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcasts`);
             setMessages(response.data);
         } catch (error) {
             setError('Failed to fetch messages');
@@ -31,7 +31,7 @@ const BroadcastMessaging = () => {
         setError('');
 
         try {
-            await axios.post('http://localhost:5000/api/broadcast', formData);
+            await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcast`, formData);
             setFormData({
                 title: '',
                 content: '',

@@ -14,7 +14,7 @@ const AdminProfile = () => {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
                 try {
-                    const response = await axios.get(`http://localhost:5000/api/auth/profile/${user.adminId}`);
+                    const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.adminId}`);
                     setProfileData(response.data);
                 } catch (error) {
                     console.error('Error fetching profile data:', error.message);

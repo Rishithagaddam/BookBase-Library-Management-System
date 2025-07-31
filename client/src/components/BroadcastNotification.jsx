@@ -7,7 +7,7 @@ const BroadcastNotification = () => {
     useEffect(() => {
         const fetchMessages = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/broadcasts');
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcasts`);
                 setMessages(response.data);
             } catch (error) {
                 console.error('Error fetching broadcasts:', error);

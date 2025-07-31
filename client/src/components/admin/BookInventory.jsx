@@ -24,7 +24,7 @@ const BookInventory = () => {
 
     const fetchBooks = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/admin/books');
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books`);
             setBooks(response.data);
             setLoading(false);
         } catch (error) {
@@ -36,7 +36,7 @@ const BookInventory = () => {
     const handleAddBook = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/api/admin/books', newBook);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books`, newBook);
             setBooks([...books, response.data]);
             setNewBook({
                 bookId: '',
@@ -55,7 +55,7 @@ const BookInventory = () => {
         e.preventDefault();
         try {
             const response = await axios.put(
-                `http://localhost:5000/api/admin/books/${editingBook._id}`, 
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/${editingBook._id}`, 
                 editingBook
             );
 
@@ -78,7 +78,7 @@ const BookInventory = () => {
     const handleRemoveBook = async (bookId) => {
         if (window.confirm('Are you sure you want to remove this book?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/admin/books/${bookId}`);
+                await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/${bookId}`);
                 setBooks(books.filter(book => book._id !== bookId));
             } catch (error) {
                 setError('Error removing book');
@@ -93,7 +93,7 @@ const BookInventory = () => {
         }
     
         try {
-            const response = await axios.get(`http://localhost:5000/api/admin/books/search?bookId=${searchId}`);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/search?bookId=${searchId}`);
             setSearchResults(response.data);
             setError('');
         } catch (error) {

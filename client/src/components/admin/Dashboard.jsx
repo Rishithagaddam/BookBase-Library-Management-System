@@ -21,7 +21,7 @@ const Dashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/admin/dashboard/stats', {
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/dashboard/stats`, {
                 headers: {
                     'Content-Type': 'application/json',
                     // Add auth token if you're using authentication

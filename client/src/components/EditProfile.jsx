@@ -28,11 +28,10 @@ const EditProfile = () => {
                         mobile: response.data.mobile || '',
                         profileImage: response.data.profileImage || '', // Fetch profileImage
                     });
-<<<<<<< HEAD
                     setProfilePhoto(response.data.profileImage ? `http://:5000/${response.data.profileImage}` : null);
-=======
+
                     setProfilePhoto(response.data.profileImage ? `${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}` : null);
->>>>>>> bfa2c3a6860e0ac7b7899b829664daeea5f5343e
+
                 } catch (error) {
                     console.error('Error fetching user details:', error.response?.data?.message || error.message);
                 }

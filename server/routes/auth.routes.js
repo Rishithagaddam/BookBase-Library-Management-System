@@ -225,29 +225,4 @@ router.put('/profile/:facultyId/image', upload.single('profileImage'), async (re
     }
 });
 
-const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const formData = new FormData();
-        formData.append('profileImage', file);
-
-        try {
-            const user = JSON.parse(localStorage.getItem('user')); // Get facultyId from localStorage
-            const response = await axios.put(
-                `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.facultyId}/image`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
-            );
-            setProfilePhoto(`${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}`);
-            console.log('Profile image updated successfully:', response.data);
-        } catch (error) {
-            console.error('Error uploading profile image:', error.response?.data?.message || error.message);
-        }
-    }
-};
-
 module.exports = router;

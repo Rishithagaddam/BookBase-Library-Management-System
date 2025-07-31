@@ -78,7 +78,7 @@ const BookInventory = () => {
     const handleRemoveBook = async (bookId) => {
         if (window.confirm('Are you sure you want to remove this book?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/admin/books/${bookId}`);
+                await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/${bookId}`);
                 setBooks(books.filter(book => book._id !== bookId));
             } catch (error) {
                 setError('Error removing book');

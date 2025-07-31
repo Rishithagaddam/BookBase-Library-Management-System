@@ -15,7 +15,7 @@ const FacultyProfile = () => {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
                 try {
-                    const response = await axios.get(`http://localhost:5000/api/auth/profile/${user.facultyId}`);
+                    const response = await axios.get(`http://:5000/api/auth/profile/${user.facultyId}`);
                     setProfileData(response.data);
                 } catch (error) {
                     console.error('Error fetching profile data:', error.message);
@@ -32,7 +32,7 @@ const FacultyProfile = () => {
                 <div className="flex items-center mb-6">
                     {profileData.profileImage ? (
                         <img
-                            src={`http://localhost:5000/${profileData.profileImage}`}
+                            src={`${import.meta.env.VITE_BACKEND_API_URL}/${profileData.profileImage}`}
                             alt="Profile"
                             className="w-24 h-24 rounded-full object-cover"
                         />

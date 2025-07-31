@@ -91,7 +91,7 @@ router.post('/forgot-password', async (req, res) => {
         console.log('User updated successfully:', user);
 
         // 4. Send email with plain reset token in URL
-        const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetLink = `http://:5173/reset-password/${resetToken}`;
         
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
@@ -234,7 +234,7 @@ const handlePhotoUpload = async (e) => {
         try {
             const user = JSON.parse(localStorage.getItem('user')); // Get facultyId from localStorage
             const response = await axios.put(
-                `http://localhost:5000/api/auth/profile/${user.facultyId}/image`,
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.facultyId}/image`,
                 formData,
                 {
                     headers: {
@@ -242,7 +242,7 @@ const handlePhotoUpload = async (e) => {
                     },
                 }
             );
-            setProfilePhoto(`http://localhost:5000/${response.data.profileImage}`);
+            setProfilePhoto(`${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}`);
             console.log('Profile image updated successfully:', response.data);
         } catch (error) {
             console.error('Error uploading profile image:', error.response?.data?.message || error.message);

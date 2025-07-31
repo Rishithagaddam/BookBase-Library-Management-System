@@ -4,6 +4,7 @@ import axios from 'axios';
 const FeedbackManager = () => {
     const [feedbacks, setFeedbacks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [filter, setFilter] = useState('all');
     const [selectedMonth, setSelectedMonth] = useState('');
 
@@ -13,11 +14,15 @@ const FeedbackManager = () => {
 
     const fetchFeedbacks = async () => {
         try {
+            setLoading(true);
+            setError('');
             const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/feedbacks?status=${filter}`);
             setFeedbacks(response.data);
-            setLoading(false);
         } catch (error) {
             console.error('Error fetching feedbacks:', error);
+            setError('Failed to fetch feedbacks');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -31,6 +36,7 @@ const FeedbackManager = () => {
             ));
         } catch (error) {
             console.error('Error updating feedback status:', error);
+            setError('Failed to update feedback status');
         }
     };
 
@@ -42,6 +48,7 @@ const FeedbackManager = () => {
             fetchFeedbacks();
         } catch (error) {
             console.error('Error submitting response:', error);
+            setError('Failed to submit response');
         }
     };
 
@@ -66,6 +73,13 @@ const FeedbackManager = () => {
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold mb-6">📝 Feedback Manager</h1>
+
+            {/* Error Message */}
+            {error && (
+                <div className="bg-red-100 text-red-600 p-3 rounded mb-4">
+                    {error}
+                </div>
+            )}
 
             {/* Filters and Report Generation */}
             <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">

@@ -19,7 +19,7 @@ const FacultyRecords = () => {
 
     const fetchFacultyData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/admin/faculty');
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/faculty`);
             setFaculty(response.data);
             setLoading(false);
         } catch (error) {
@@ -36,7 +36,7 @@ const FacultyRecords = () => {
                 return;
             }
 
-            const response = await axios.post('http://localhost:5000/api/admin/faculty', newFaculty);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/faculty`, newFaculty);
             
             // Add new faculty to the list
             setFaculty([...faculty, response.data]);
@@ -63,7 +63,7 @@ const FacultyRecords = () => {
 
         try {
             // Remove selected faculty using their IDs
-            const response = await axios.delete('http://localhost:5000/api/admin/faculty', {
+            const response = await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/faculty`, {
                 data: { facultyIds: selectedFacultyIds }
             });
 

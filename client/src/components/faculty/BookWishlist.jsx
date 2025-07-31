@@ -19,7 +19,7 @@ const BookWishlist = () => {
     const fetchWishlist = async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            const response = await axios.get(`http://localhost:5000/api/faculty/wishlist?facultyId=${user.facultyId}`);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/wishlist?facultyId=${user.facultyId}`);
             setWishlistItems(response.data);
         } catch (error) {
             console.error('Error fetching wishlist:', error);
@@ -34,7 +34,7 @@ const BookWishlist = () => {
 
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            const response = await axios.post('http://localhost:5000/api/faculty/wishlist', {
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/wishlist`, {
                 ...formData,
                 facultyId: user.facultyId
             });

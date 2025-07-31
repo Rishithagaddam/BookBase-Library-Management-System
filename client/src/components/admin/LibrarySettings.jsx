@@ -55,7 +55,7 @@ const LibrarySettings = () => {
 
     const fetchHolidays = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/admin/settings/holidays');
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/holidays`);
             setHolidays(response.data);
         } catch (error) {
             console.error('Error fetching holidays:', error);
@@ -65,7 +65,7 @@ const LibrarySettings = () => {
     const handleWorkingHoursSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/admin/settings/working-hours', workingHours);
+            await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/working-hours`, workingHours);
             setSuccess('Working hours updated successfully');
             setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
@@ -77,7 +77,7 @@ const LibrarySettings = () => {
     const handleAddHoliday = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/api/admin/settings/holidays', newHoliday);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/holidays`, newHoliday);
             setHolidays([...holidays, response.data]);
             setNewHoliday({ date: '', description: '' });
             setSuccess('Holiday added successfully');
@@ -90,7 +90,7 @@ const LibrarySettings = () => {
         
     const handleDeleteHoliday = async (holidayId) => {
         try {
-            await axios.delete(`http://localhost:5000/api/admin/settings/holidays/${holidayId}`);
+            await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/holidays/${holidayId}`);
             setHolidays(holidays.filter(h => h._id !== holidayId));
             setSuccess('Holiday deleted successfully');
             setTimeout(() => setSuccess(''), 3000);

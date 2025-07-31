@@ -13,7 +13,7 @@ const FeedbackManager = () => {
 
     const fetchFeedbacks = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/admin/feedbacks?status=${filter}`);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/feedbacks?status=${filter}`);
             setFeedbacks(response.data);
             setLoading(false);
         } catch (error) {
@@ -23,7 +23,7 @@ const FeedbackManager = () => {
 
     const handleStatusUpdate = async (feedbackId, newStatus) => {
         try {
-            await axios.put(`http://localhost:5000/api/admin/feedbacks/${feedbackId}`, {
+            await axios.put(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/feedbacks/${feedbackId}`, {
                 status: newStatus
             });
             setFeedbacks(feedbacks.map(feedback =>
@@ -36,7 +36,7 @@ const FeedbackManager = () => {
 
     const handleResponseSubmit = async (feedbackId, response) => {
         try {
-            await axios.put(`http://localhost:5000/api/admin/feedbacks/${feedbackId}/respond`, {
+            await axios.put(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/feedbacks/${feedbackId}/respond`, {
                 adminResponse: response
             });
             fetchFeedbacks();
@@ -48,7 +48,7 @@ const FeedbackManager = () => {
     const generateReport = async () => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/admin/feedbacks/report?month=${selectedMonth}`,
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/feedbacks/report?month=${selectedMonth}`,
                 { responseType: 'blob' }
             );
             const url = window.URL.createObjectURL(new Blob([response.data]));

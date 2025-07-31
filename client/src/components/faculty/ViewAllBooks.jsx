@@ -22,7 +22,7 @@ const ViewAllBooks = () => {
         // Fetch books from the backend
         const fetchBooks = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/faculty/books');
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/books`);
                 setBooks(response.data);
                 setFilteredBooks(response.data);
             } catch (error) {
@@ -87,7 +87,7 @@ const ViewAllBooks = () => {
             const user = JSON.parse(localStorage.getItem('user'));
             
             const response = await axios.put(
-                `http://localhost:5000/api/faculty/books/issue/${selectedBook._id}`, // Changed from bookId to _id
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/books/issue/${selectedBook._id}`, // Changed from bookId to _id
                 {
                     issuedDate: new Date(),
                     facultyId: user.facultyId // Add facultyId to the request

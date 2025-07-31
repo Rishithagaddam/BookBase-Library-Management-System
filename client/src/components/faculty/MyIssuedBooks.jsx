@@ -18,7 +18,7 @@ const MyIssuedBooks = () => {
                 }
 
                 // Fetch issued books using GET request
-                const response = await axios.get(`http://localhost:5000/api/faculty/dashboard/${user.facultyId}`, {
+                const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/dashboard/${user.facultyId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },

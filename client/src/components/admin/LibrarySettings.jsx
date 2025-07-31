@@ -46,7 +46,7 @@ const LibrarySettings = () => {
 
     const fetchWorkingHours = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/admin/settings/working-hours');
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/working-hours`);
             setWorkingHours(response.data);
         } catch (error) {
             console.error('Error fetching working hours:', error);

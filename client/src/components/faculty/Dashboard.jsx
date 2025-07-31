@@ -29,10 +29,10 @@ const Dashboard = () => {
                 issuedBooksResponse,
                 broadcastsResponse
             ] = await Promise.all([
-                axios.get('http://localhost:5000/api/admin/settings/working-hours'),
-                axios.get('http://localhost:5000/api/admin/settings/holidays'),
-                axios.get(`http://localhost:5000/api/faculty/dashboard/${user.facultyId}`),
-                axios.get('http://localhost:5000/api/broadcasts')
+                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/working-hours`),
+                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/holidays`),
+                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/dashboard/${user.facultyId}`),
+                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcasts`)
             ]);
 
             setLibraryInfo({

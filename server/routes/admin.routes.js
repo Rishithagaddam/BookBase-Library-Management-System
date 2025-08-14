@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose'); // Add this line
 const router = express.Router();
 const Faculty = require('../models/faculty');
 const Book = require('../models/book');
@@ -332,13 +333,13 @@ router.delete('/books/:id', async (req, res) => {
     }
 });
 
-// Issue book to faculty
+// Issue book to faculty - SIMPLIFIED VERSION
 router.put('/books/issue/:id', async (req, res) => {
     try {
         const { facultyId, issuedDate } = req.body;
         const bookId = req.params.id;
 
-        console.log('Issue book request:', { bookId, facultyId, issuedDate }); // Debug log
+        console.log('Issue book request:', { bookId, facultyId, issuedDate });
 
         // Check if faculty exists
         const faculty = await Faculty.findOne({ facultyId });
@@ -360,26 +361,33 @@ router.put('/books/issue/:id', async (req, res) => {
         const dueDate = new Date(issuedDate);
         dueDate.setDate(dueDate.getDate() + 30);
 
-        // Update book status
+        // Update book status first
         book.status = 'issued';
         book.issuedTo = facultyId;
         book.issuedDate = new Date(issuedDate);
         book.dueDate = dueDate;
         await book.save();
 
-        // Update faculty record
-        faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks || [];
-        faculty.currentlyIssuedBooks.push({
-            bookId: book._id,
-            title: book.title,
-            author: book.author,
-            issuedDate: new Date(issuedDate),
-            dueDate: dueDate
-        });
-        faculty.totalBooksIssued = (faculty.totalBooksIssued || 0) + 1;
-        await faculty.save();
+        // Use MongoDB's atomic operation to update faculty
+        const updateResult = await Faculty.updateOne(
+            { facultyId: facultyId },
+            { 
+                $push: { currentlyIssuedBooks: book._id },
+                $inc: { totalBooksIssued: 1 }
+            }
+        );
 
-        console.log('Book issued successfully:', book._id); // Debug log
+        if (updateResult.modifiedCount === 0) {
+            // If faculty update failed, revert book changes
+            book.status = 'available';
+            book.issuedTo = null;
+            book.issuedDate = null;
+            book.dueDate = null;
+            await book.save();
+            return res.status(500).json({ message: 'Failed to update faculty record' });
+        }
+
+        console.log('Book issued successfully:', book._id);
 
         res.status(200).json({ 
             message: 'Book issued successfully', 
@@ -395,12 +403,12 @@ router.put('/books/issue/:id', async (req, res) => {
     }
 });
 
-// Return book from faculty
+// Return book from faculty - SIMPLIFIED VERSION
 router.put('/books/return/:id', async (req, res) => {
     try {
         const bookId = req.params.id;
 
-        console.log('Return book request:', { bookId }); // Debug log
+        console.log('Return book request:', { bookId });
 
         // Find the book
         const book = await Book.findById(bookId);
@@ -417,31 +425,54 @@ router.put('/books/return/:id', async (req, res) => {
         // Update book status
         book.status = 'available';
         book.returnedDate = new Date();
-        const previousIssuedTo = book.issuedTo;
         book.issuedTo = null;
         book.issuedDate = null;
         book.dueDate = null;
         await book.save();
 
-        // Update faculty record
-        const faculty = await Faculty.findOne({ facultyId });
-        if (faculty) {
-            faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks.filter(
-                issuedBook => issuedBook.bookId.toString() !== bookId
-            );
-            await faculty.save();
-        }
+        // Use MongoDB's atomic operation to update faculty
+        await Faculty.updateOne(
+            { facultyId: facultyId },
+            { $pull: { currentlyIssuedBooks: bookId } }
+        );
 
-        console.log('Book returned successfully:', book._id); // Debug log
+        console.log('Book returned successfully:', book._id);
 
         res.status(200).json({ 
             message: 'Book returned successfully', 
             book,
-            returnedBy: previousIssuedTo
+            returnedBy: facultyId
         });
     } catch (error) {
         console.error('Error returning book:', error);
         res.status(500).json({ message: 'Error returning book', error: error.message });
+    }
+});
+
+// Clean up faculty data (add this route temporarily)
+router.post('/cleanup-faculty-data', async (req, res) => {
+    try {
+        const faculties = await Faculty.find();
+        
+        for (let faculty of faculties) {
+            if (faculty.currentlyIssuedBooks) {
+                // Clean up currentlyIssuedBooks to ensure they are all valid ObjectIds
+                faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks.filter(item => {
+                    // Check if it's a valid ObjectId
+                    try {
+                        return mongoose.Types.ObjectId.isValid(item);
+                    } catch (error) {
+                        return false;
+                    }
+                });
+                await faculty.save();
+            }
+        }
+        
+        res.json({ message: 'Faculty data cleaned up successfully' });
+    } catch (error) {
+        console.error('Error cleaning up faculty data:', error);
+        res.status(500).json({ message: 'Error cleaning up data', error: error.message });
     }
 });
 

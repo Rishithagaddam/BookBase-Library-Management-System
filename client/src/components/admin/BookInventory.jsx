@@ -124,6 +124,8 @@ const BookInventory = () => {
         }
 
         try {
+            console.log('Issuing book:', selectedBook._id, 'to faculty:', facultyId); // Debug log
+            
             const response = await axios.put(
                 `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/issue/${selectedBook._id}`,
                 {
@@ -148,8 +150,13 @@ const BookInventory = () => {
                 setTimeout(() => setSuccess(''), 5000);
             }
         } catch (error) {
-            console.error('Error details:', error.response); // Add this for debugging
-            setError(error.response?.data?.message || 'Error issuing book');
+            console.error('Full error object:', error); // Enhanced debug log
+            console.error('Error response data:', error.response?.data); // Enhanced debug log
+            
+            const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           'Error issuing book';
+            setError(errorMessage);
             setTimeout(() => setError(''), 5000);
         }
     };

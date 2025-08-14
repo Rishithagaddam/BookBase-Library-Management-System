@@ -5,8 +5,6 @@ const Faculty = require('../models/faculty');
 const Book = require('../models/book');
 const Feedback = require('../models/feedback');
 
-const User = require('../models/user');
-
 const { Settings } = require('../models/settings');
 const { Holiday } = require('../models/settings');
 
@@ -49,17 +47,17 @@ router.delete('/settings/holidays/:id', async (req, res) => {
 });
 
 // Middleware to check if user is admin
-const isAdmin = async (req, res, next) => {
-    try {
-        const faculty = await Faculty.findOne({ facultyId: req.user.facultyId });
-        if (!faculty || faculty.role !== 'admin') {
-            return res.status(403).json({ message: 'Access denied. Admin only.' });
-        }
-        next();
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
+// const isAdmin = async (req, res, next) => {
+//     try {
+//         const faculty = await Faculty.findOne({ facultyId: req.user.facultyId });
+//         if (!faculty || faculty.role !== 'admin') {
+//             return res.status(403).json({ message: 'Access denied. Admin only.' });
+//         }
+//         next();
+//     } catch (error) {
+//         res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// };
 
 // Get dashboard statistics
 router.get('/dashboard/stats', async (req, res) => {
@@ -149,7 +147,7 @@ router.delete('/faculty', async (req, res) => {
             // Delete faculty and user associated with the facultyId
             await Promise.all([
                 Faculty.deleteOne({ facultyId }),
-                User.deleteOne({ facultyId })
+                // User.deleteOne({ facultyId })
             ]);
         }
 

@@ -10,8 +10,8 @@ exports.verifyToken = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); // Verify token
-        req.user = await Faculty.findOne({ _id: decoded.id }); // Attach user to req
-        if (!req.user) {
+        req.faculty = await Faculty.findOne({ _id: decoded.id }); // Attach faculty to req
+        if (!req.faculty) {
             return res.status(401).json({ message: "Unauthorized" });
         }
         next();
@@ -22,7 +22,7 @@ exports.verifyToken = async (req, res, next) => {
 
 exports.isAdmin = async (req, res, next) => {
     try {
-        const faculty = await Faculty.findById(req.userId);
+        const faculty = await Faculty.findById(req.facultyId);
         if (faculty.role !== 'admin') {
             return res.status(403).json({ message: "Require Admin Role!" });
         }

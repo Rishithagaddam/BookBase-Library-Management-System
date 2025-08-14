@@ -1,13 +1,13 @@
 const bcrypt = require('bcryptjs');
 const Faculty = require('../models/faculty');
-const User = require('../models/user');
 
 exports.login = async (req, res) => {
     try {
         const { facultyId, password } = req.body;
+        console.log(facultyId, password)
 
         // Find faculty
-        const faculty = await User.findOne({ facultyId });
+        const faculty = await Faculty.findOne({ facultyId });
         if (!faculty) {
             return res.status(404).json({ message: "Faculty not found" });
         }
@@ -24,7 +24,7 @@ exports.login = async (req, res) => {
             role: faculty.role,
             facultyId: faculty.facultyId,
             email: faculty.email,
-            username: faculty.username,
+            facultyname: faculty.facultyname,
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

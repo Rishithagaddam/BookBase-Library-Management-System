@@ -353,8 +353,21 @@ router.put('/books/issue/:id', async (req, res) => {
             return res.status(404).json({ message: 'Book not found' });
         }
 
+        console.log('Book current status:', book.status, 'issuedTo:', book.issuedTo);
+
+        // Check for inconsistent data and fix it
+        if (book.status === 'issued' && !book.issuedTo) {
+            console.log('Fixing inconsistent book data - status is issued but no issuedTo field');
+            book.status = 'available';
+            book.issuedDate = null;
+            book.dueDate = null;
+            await book.save();
+        }
+
         if (book.status !== 'available') {
-            return res.status(400).json({ message: 'Book is not available for issue' });
+            return res.status(400).json({ 
+                message: `Book is not available for issue. Current status: ${book.status}${book.issuedTo ? `, issued to: ${book.issuedTo}` : ''}` 
+            });
         }
 
         // Calculate due date (30 days from issue date)
@@ -372,12 +385,14 @@ router.put('/books/issue/:id', async (req, res) => {
         const updateResult = await Faculty.updateOne(
             { facultyId: facultyId },
             { 
-                $push: { currentlyIssuedBooks: book._id },
+                $addToSet: { currentlyIssuedBooks: book._id }, // Use $addToSet to avoid duplicates
                 $inc: { totalBooksIssued: 1 }
             }
         );
 
-        if (updateResult.modifiedCount === 0) {
+        console.log('Faculty update result:', updateResult);
+
+        if (updateResult.matchedCount === 0) {
             // If faculty update failed, revert book changes
             book.status = 'available';
             book.issuedTo = null;
@@ -473,6 +488,35 @@ router.post('/cleanup-faculty-data', async (req, res) => {
     } catch (error) {
         console.error('Error cleaning up faculty data:', error);
         res.status(500).json({ message: 'Error cleaning up data', error: error.message });
+    }
+});
+
+// Debug route to fix data inconsistencies
+router.post('/fix-book-data', async (req, res) => {
+    try {
+        const books = await Book.find({});
+        let fixedBooks = 0;
+        
+        for (let book of books) {
+            // Fix books that are marked as issued but have no issuedTo
+            if (book.status === 'issued' && (!book.issuedTo || book.issuedTo.trim() === '')) {
+                book.status = 'available';
+                book.issuedTo = null;
+                book.issuedDate = null;
+                book.dueDate = null;
+                await book.save();
+                fixedBooks++;
+                console.log(`Fixed book ${book.bookId} - was marked as issued but had no faculty assigned`);
+            }
+        }
+        
+        res.json({ 
+            message: `Data consistency check completed. Fixed ${fixedBooks} books.`,
+            fixedBooks: fixedBooks
+        });
+    } catch (error) {
+        console.error('Error fixing book data:', error);
+        res.status(500).json({ message: 'Error fixing book data', error: error.message });
     }
 });
 

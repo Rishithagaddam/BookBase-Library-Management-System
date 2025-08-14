@@ -35,7 +35,7 @@ const LoginPage = () => {
                     facultyId: response.data.facultyId,
                     role: response.data.role,
                     email: response.data.email,
-                    name: response.data.username
+                    name: response.data.facultyname
                 }));
 
                 if (response.data.role === 'admin') {
@@ -107,12 +107,6 @@ const LoginPage = () => {
                         Login
                     </button>
                 </form>
-                <p className="text-center text-gray-600 mt-4">
-                    Don't have an account?{' '}
-                    <a href="/signup" className="text-green-600 hover:underline">
-                        Sign Up
-                    </a>
-                </p>
             </div>
         </div>
     );

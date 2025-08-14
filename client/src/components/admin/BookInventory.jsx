@@ -12,11 +12,16 @@ const BookInventory = () => {
         author: '',
         category: '',
         publisher: '',
-        status: 'available'
+        status: 'available',
+        placeLocated: ''
     });
     const [editingBook, setEditingBook] = useState(null);
     const [searchId, setSearchId] = useState('');
     const [searchResults, setSearchResults] = useState(null);
+    const [showIssueModal, setShowIssueModal] = useState(false);
+    const [showReturnModal, setShowReturnModal] = useState(false);
+    const [selectedBook, setSelectedBook] = useState(null);
+    const [facultyId, setFacultyId] = useState('');
 
     useEffect(() => {
         fetchBooks();
@@ -44,7 +49,8 @@ const BookInventory = () => {
                 author: '',
                 category: '',
                 publisher: '',
-                status: 'available'
+                status: 'available',
+                placeLocated: ''
             });
         } catch (error) {
             setError('Error adding book');
@@ -109,6 +115,79 @@ const BookInventory = () => {
         } else {
             handleAddBook(e);
         }
+    };
+
+    const handleIssueBook = async () => {
+        if (!facultyId.trim()) {
+            setError('Please enter a faculty ID');
+            return;
+        }
+
+        try {
+            const response = await axios.put(
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/issue/${selectedBook._id}`,
+                {
+                    facultyId: facultyId,
+                    issuedDate: new Date()
+                }
+            );
+
+            if (response.status === 200) {
+                setSuccess(`Book "${selectedBook.title}" issued successfully to Faculty ID: ${facultyId}`);
+                
+                // Update the books list locally
+                setBooks(books.map(book => 
+                    book._id === selectedBook._id 
+                        ? { ...book, status: 'issued', issuedTo: facultyId, issuedDate: new Date() }
+                        : book
+                ));
+
+                setShowIssueModal(false);
+                setSelectedBook(null);
+                setFacultyId('');
+                setTimeout(() => setSuccess(''), 5000);
+            }
+        } catch (error) {
+            console.error('Error details:', error.response); // Add this for debugging
+            setError(error.response?.data?.message || 'Error issuing book');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
+    const handleReturnBook = async () => {
+        try {
+            const response = await axios.put(
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/return/${selectedBook._id}`
+            );
+
+            if (response.status === 200) {
+                setSuccess(`Book "${selectedBook.title}" returned successfully`);
+                
+                // Update the books list locally
+                setBooks(books.map(book => 
+                    book._id === selectedBook._id 
+                        ? { ...book, status: 'available', issuedTo: null, issuedDate: null, returnedDate: new Date() }
+                        : book
+                ));
+
+                setShowReturnModal(false);
+                setSelectedBook(null);
+                setTimeout(() => setSuccess(''), 5000);
+            }
+        } catch (error) {
+            setError(error.response?.data?.message || 'Error returning book');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
+    const openIssueModal = (book) => {
+        setSelectedBook(book);
+        setShowIssueModal(true);
+    };
+
+    const openReturnModal = (book) => {
+        setSelectedBook(book);
+        setShowReturnModal(true);
     };
 
     return (
@@ -257,6 +336,7 @@ const BookInventory = () => {
                                     <th className="px-4 py-2">Category</th>
                                     <th className="px-4 py-2">Status</th>
                                     <th className="px-4 py-2">Location</th>
+                                    <th className="px-4 py-2">Issued To</th>
                                     <th className="px-4 py-2">Actions</th>
                                 </tr>
                             </thead>
@@ -277,19 +357,37 @@ const BookInventory = () => {
                                             </span>
                                         </td>
                                         <td className="px-4 py-2">{book.placeLocated}</td>
+                                        <td className="px-4 py-2">{book.issuedTo || 'N/A'}</td>
                                         <td className="px-4 py-2">
-                                            <button
-                                                onClick={() => setEditingBook(book)}
-                                                className="text-blue-600 hover:text-blue-800 mr-2"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleRemoveBook(book._id)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                Remove
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setEditingBook(book)}
+                                                    className="text-blue-600 hover:text-blue-800 px-2 py-1 text-sm"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRemoveBook(book._id)}
+                                                    className="text-red-600 hover:text-red-800 px-2 py-1 text-sm"
+                                                >
+                                                    Remove
+                                                </button>
+                                                {book.status === 'available' ? (
+                                                    <button
+                                                        onClick={() => openIssueModal(book)}
+                                                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                                                    >
+                                                        Issue
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => openReturnModal(book)}
+                                                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
+                                                    >
+                                                        Return
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -298,6 +396,73 @@ const BookInventory = () => {
                     </div>
                 )}
             </div>
+
+            {/* Issue Book Modal */}
+            {showIssueModal && selectedBook && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Issue Book</h2>
+                        <p className="mb-4">Book: <strong>{selectedBook.title}</strong></p>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">Faculty ID:</label>
+                            <input
+                                type="text"
+                                value={facultyId}
+                                onChange={(e) => setFacultyId(e.target.value)}
+                                placeholder="Enter Faculty ID"
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => {
+                                    setShowIssueModal(false);
+                                    setSelectedBook(null);
+                                    setFacultyId('');
+                                }}
+                                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleIssueBook}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                Issue Book
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Return Book Modal */}
+            {showReturnModal && selectedBook && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Return Book</h2>
+                        <p className="mb-4">Book: <strong>{selectedBook.title}</strong></p>
+                        <p className="mb-4">Issued To: <strong>{selectedBook.issuedTo}</strong></p>
+                        <p className="mb-4">Are you sure you want to return this book?</p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => {
+                                    setShowReturnModal(false);
+                                    setSelectedBook(null);
+                                }}
+                                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReturnBook}
+                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                            >
+                                Return Book
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

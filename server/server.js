@@ -3,11 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth.routes');
-const adminRoutes = require('./routes/admin.routes');
-const facultyRoutes = require('./routes/faculty.routes');
-const broadcastRoutes = require('./routes/broadcast.routes');
-
 const app = express();
 
 // Middleware
@@ -23,10 +18,10 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/faculty', facultyRoutes);
-app.use('/api', broadcastRoutes);
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/faculty', require('./routes/faculty.routes'));
+app.use('/api', require('./routes/broadcast.routes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

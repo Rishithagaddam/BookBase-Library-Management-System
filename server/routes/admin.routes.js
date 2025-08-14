@@ -332,4 +332,117 @@ router.delete('/books/:id', async (req, res) => {
     }
 });
 
+// Issue book to faculty
+router.put('/books/issue/:id', async (req, res) => {
+    try {
+        const { facultyId, issuedDate } = req.body;
+        const bookId = req.params.id;
+
+        console.log('Issue book request:', { bookId, facultyId, issuedDate }); // Debug log
+
+        // Check if faculty exists
+        const faculty = await Faculty.findOne({ facultyId });
+        if (!faculty) {
+            return res.status(404).json({ message: 'Faculty not found' });
+        }
+
+        // Find and update the book
+        const book = await Book.findById(bookId);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        if (book.status !== 'available') {
+            return res.status(400).json({ message: 'Book is not available for issue' });
+        }
+
+        // Calculate due date (30 days from issue date)
+        const dueDate = new Date(issuedDate);
+        dueDate.setDate(dueDate.getDate() + 30);
+
+        // Update book status
+        book.status = 'issued';
+        book.issuedTo = facultyId;
+        book.issuedDate = new Date(issuedDate);
+        book.dueDate = dueDate;
+        await book.save();
+
+        // Update faculty record
+        faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks || [];
+        faculty.currentlyIssuedBooks.push({
+            bookId: book._id,
+            title: book.title,
+            author: book.author,
+            issuedDate: new Date(issuedDate),
+            dueDate: dueDate
+        });
+        faculty.totalBooksIssued = (faculty.totalBooksIssued || 0) + 1;
+        await faculty.save();
+
+        console.log('Book issued successfully:', book._id); // Debug log
+
+        res.status(200).json({ 
+            message: 'Book issued successfully', 
+            book,
+            faculty: {
+                facultyId: faculty.facultyId,
+                facultyName: faculty.facultyName
+            }
+        });
+    } catch (error) {
+        console.error('Error issuing book:', error);
+        res.status(500).json({ message: 'Error issuing book', error: error.message });
+    }
+});
+
+// Return book from faculty
+router.put('/books/return/:id', async (req, res) => {
+    try {
+        const bookId = req.params.id;
+
+        console.log('Return book request:', { bookId }); // Debug log
+
+        // Find the book
+        const book = await Book.findById(bookId);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        if (book.status !== 'issued') {
+            return res.status(400).json({ message: 'Book is not currently issued' });
+        }
+
+        const facultyId = book.issuedTo;
+
+        // Update book status
+        book.status = 'available';
+        book.returnedDate = new Date();
+        const previousIssuedTo = book.issuedTo;
+        book.issuedTo = null;
+        book.issuedDate = null;
+        book.dueDate = null;
+        await book.save();
+
+        // Update faculty record
+        const faculty = await Faculty.findOne({ facultyId });
+        if (faculty) {
+            faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks.filter(
+                issuedBook => issuedBook.bookId.toString() !== bookId
+            );
+            await faculty.save();
+        }
+
+        console.log('Book returned successfully:', book._id); // Debug log
+
+        res.status(200).json({ 
+            message: 'Book returned successfully', 
+            book,
+            returnedBy: previousIssuedTo
+        });
+    } catch (error) {
+        console.error('Error returning book:', error);
+        res.status(500).json({ message: 'Error returning book', error: error.message });
+    }
+});
+
 module.exports = router;

@@ -179,4 +179,32 @@ router.put('/profile/:facultyId/image', upload.single('profileImage'), async (re
     }
 });
 
+// Password change endpoint
+router.put('/change-password/:facultyId', async (req, res) => {
+    const { facultyId } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        // Find faculty by facultyId
+        const faculty = await Faculty.findOne({ facultyId });
+        if (!faculty) {
+            return res.status(404).json({ message: 'Faculty not found' });
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, faculty.password);
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        // Update with new password (will be hashed by pre-save hook)
+        faculty.password = newPassword;
+        await faculty.save();
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 module.exports = router;

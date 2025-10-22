@@ -17,7 +17,7 @@ const facultySchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        match: [/.+@.+\..+/, 'Please enter a valid email address'], // Email validation
+        match: [/.+@.+\..+/, 'Please enter a valid email address'],
     },
     password: {
         type: String,

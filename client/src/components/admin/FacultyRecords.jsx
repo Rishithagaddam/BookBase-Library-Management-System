@@ -8,7 +8,9 @@ const FacultyRecords = () => {
     const [success, setSuccess] = useState('');
     const [newFaculty, setNewFaculty] = useState({
         facultyId: '',
-        facultyName: '',
+        facultyname: '',
+        email: '',
+        password: 'vnrvjiet', // Default password
         role: 'faculty'
     });
     const [selectedFacultyIds, setSelectedFacultyIds] = useState([]);
@@ -31,8 +33,10 @@ const FacultyRecords = () => {
     const handleAddFaculty = async (e) => {
         e.preventDefault();
         try {
-            if (!newFaculty.facultyId || !newFaculty.facultyName) {
-                setError('Faculty ID and Name are required');
+            // Check if all required fields are provided
+            if (!newFaculty.facultyId || !newFaculty.facultyname || !newFaculty.email) {
+                setError('Faculty ID, Name, and Email are required');
+                setTimeout(() => setError(''), 3000);
                 return;
             }
 
@@ -44,13 +48,16 @@ const FacultyRecords = () => {
             // Reset form
             setNewFaculty({
                 facultyId: '',
-                facultyName: '',
+                facultyname: '',
+                email: '',
+                password: 'vnrvjiet',
                 role: 'faculty'
             });
             
             setSuccess('Faculty added successfully');
             setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
+            console.error('Error adding faculty:', error);
             setError(error.response?.data?.message || 'Error adding faculty');
             setTimeout(() => setError(''), 3000);
         }
@@ -93,6 +100,10 @@ const FacultyRecords = () => {
 
     return (
         <div className="space-y-6">
+            {/* Display error/success messages */}
+            {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
+            {success && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">{success}</div>}
+            
             <h1 className="text-3xl font-bold mb-6">🧑‍🏫 Faculty Records</h1>
 
             {/* Faculty Section */}
@@ -100,7 +111,7 @@ const FacultyRecords = () => {
                 <h2 className="text-xl font-semibold mb-4">Faculty Members</h2>
 
                 {/* Add Faculty Form */}
-                <form onSubmit={handleAddFaculty} className="flex gap-4 mb-6">
+                <form onSubmit={handleAddFaculty} className="flex gap-4 mb-6 flex-wrap">
                     <input
                         type="text"
                         value={newFaculty.facultyId}
@@ -111,9 +122,17 @@ const FacultyRecords = () => {
                     />
                     <input
                         type="text"
-                        value={newFaculty.facultyName}
-                        onChange={(e) => setNewFaculty({...newFaculty, facultyName: e.target.value})}
+                        value={newFaculty.facultyname}
+                        onChange={(e) => setNewFaculty({...newFaculty, facultyname: e.target.value})}
                         placeholder="Faculty Name"
+                        className="p-2 border rounded"
+                        required
+                    />
+                    <input
+                        type="email"
+                        value={newFaculty.email}
+                        onChange={(e) => setNewFaculty({...newFaculty, email: e.target.value})}
+                        placeholder="Email Address"
                         className="p-2 border rounded"
                         required
                     />
@@ -125,7 +144,10 @@ const FacultyRecords = () => {
                         <option value="faculty">Faculty</option>
                         <option value="admin">Admin</option>
                     </select>
-                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    >
                         Add Faculty
                     </button>
                 </form>
@@ -160,6 +182,7 @@ const FacultyRecords = () => {
                                 </th>
                                 <th className="px-4 py-2">Faculty ID</th>
                                 <th className="px-4 py-2">Name</th>
+                                <th className="px-4 py-2">Email</th>
                                 <th className="px-4 py-2">Role</th>
                             </tr>
                         </thead>
@@ -174,7 +197,8 @@ const FacultyRecords = () => {
                                         />
                                     </td>
                                     <td className="px-4 py-2 text-center">{f.facultyId}</td>
-                                    <td className="px-4 py-2 text-center">{f.facultyName}</td>
+                                    <td className="px-4 py-2 text-center">{f.facultyname}</td>
+                                    <td className="px-4 py-2 text-center">{f.email}</td>
                                     <td className="px-4 py-2 text-center">{f.role}</td>
                                 </tr>
                             ))}

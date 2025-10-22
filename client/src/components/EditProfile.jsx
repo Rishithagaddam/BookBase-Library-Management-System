@@ -36,16 +36,17 @@ const EditProfile = () => {
                 try {
                     const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.facultyId}`);
                     setFormData({
-                        username: response.data.username,
+                        username: response.data.facultyname, // Changed from username to facultyname
                         facultyId: response.data.facultyId,
                         email: response.data.email,
                         mobile: response.data.mobile || '',
-                        profileImage: response.data.profileImage || '', // Fetch profileImage
+                        profileImage: response.data.profileImage || '',
                     });
-                    setProfilePhoto(response.data.profileImage ? `http://:5000/${response.data.profileImage}` : null);
-
-                    setProfilePhoto(response.data.profileImage ? `${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}` : null);
-
+                    
+                    // Fix the URL format for the profile photo
+                    if (response.data.profileImage) {
+                        setProfilePhoto(`${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}`);
+                    }
                 } catch (error) {
                     console.error('Error fetching user details:', error.response?.data?.message || error.message);
                 }
@@ -87,7 +88,7 @@ const EditProfile = () => {
         e.preventDefault();
         try {
             const response = await axios.put(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}`, {
-                username: formData.username,
+                facultyname: formData.username, // Changed from username to facultyname
                 email: formData.email,
                 mobile: formData.mobile,
             });

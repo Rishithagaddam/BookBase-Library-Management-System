@@ -99,16 +99,27 @@ router.get('/faculty', async (req, res) => {
 // Add new faculty
 router.post('/faculty', async (req, res) => {
     try {
-        const { facultyId, facultyName, role } = req.body;
+        const { facultyId, facultyname, email, role, password = 'vnrvjiet' } = req.body;
 
-        const existingFaculty = await Faculty.findOne({ facultyId });
+        // Check for required fields
+        if (!facultyId || !facultyname || !email) {
+            return res.status(400).json({ message: 'Faculty ID, Name and Email are required' });
+        }
+
+        const existingFaculty = await Faculty.findOne({ $or: [{ facultyId }, { email }] });
         if (existingFaculty) {
-            return res.status(400).json({ message: 'Faculty ID already exists' });
+            return res.status(400).json({ 
+                message: existingFaculty.facultyId === facultyId 
+                    ? 'Faculty ID already exists' 
+                    : 'Email already exists'
+            });
         }
 
         const faculty = new Faculty({
             facultyId,
-            facultyName,
+            facultyname,
+            email,
+            password,
             role: role || 'faculty',
             currentlyIssuedBooks: [],
             totalBooksIssued: 0

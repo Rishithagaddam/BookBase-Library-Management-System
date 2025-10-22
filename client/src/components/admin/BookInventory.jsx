@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const BookInventory = () => {
     const [books, setBooks] = useState([]);
+    const [filteredBooks, setFilteredBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -16,8 +17,13 @@ const BookInventory = () => {
         placeLocated: ''
     });
     const [editingBook, setEditingBook] = useState(null);
-    const [searchId, setSearchId] = useState('');
-    const [searchResults, setSearchResults] = useState(null);
+    const [searchFilters, setSearchFilters] = useState({
+        bookId: '',
+        title: '',
+        author: '',
+        category: '',
+        status: ''
+    });
     const [showIssueModal, setShowIssueModal] = useState(false);
     const [showReturnModal, setShowReturnModal] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
@@ -31,6 +37,7 @@ const BookInventory = () => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books`);
             setBooks(response.data);
+            setFilteredBooks(response.data);
             setLoading(false);
         } catch (error) {
             setError('Error fetching books');
@@ -38,11 +45,35 @@ const BookInventory = () => {
         }
     };
 
+    // Handle search filter changes
+    const handleSearchChange = (e) => {
+        const { name, value } = e.target;
+        setSearchFilters((prevFilters) => ({
+            ...prevFilters,
+            [name]: value,
+        }));
+    };
+
+    // Apply filters whenever search filters change
+    useEffect(() => {
+        const filtered = books.filter((book) => {
+            return (
+                (searchFilters.bookId === '' || (book.bookId && book.bookId.toLowerCase().includes(searchFilters.bookId.toLowerCase()))) &&
+                (searchFilters.title === '' || (book.title && book.title.toLowerCase().includes(searchFilters.title.toLowerCase()))) &&
+                (searchFilters.author === '' || (book.author && book.author.toLowerCase().includes(searchFilters.author.toLowerCase()))) &&
+                (searchFilters.category === '' || (book.category && book.category.toLowerCase().includes(searchFilters.category.toLowerCase()))) &&
+                (searchFilters.status === '' || book.status === searchFilters.status)
+            );
+        });
+        setFilteredBooks(filtered);
+    }, [searchFilters, books]);
+
     const handleAddBook = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books`, newBook);
             setBooks([...books, response.data]);
+            setFilteredBooks([...filteredBooks, response.data]);
             setNewBook({
                 bookId: '',
                 title: '',
@@ -52,8 +83,11 @@ const BookInventory = () => {
                 status: 'available',
                 placeLocated: ''
             });
+            setSuccess('Book added successfully');
+            setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
             setError('Error adding book');
+            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -64,11 +98,21 @@ const BookInventory = () => {
                 `${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/${editingBook._id}`, 
                 editingBook
             );
-
+            
             // Update the books list with the updated book
-            setBooks(books.map(book => 
+            const updatedBooks = books.map(book => 
                 book._id === editingBook._id ? response.data : book
-            ));
+            );
+            setBooks(updatedBooks);
+            setFilteredBooks(updatedBooks.filter((book) => {
+                return (
+                    (searchFilters.bookId === '' || (book.bookId && book.bookId.toLowerCase().includes(searchFilters.bookId.toLowerCase()))) &&
+                    (searchFilters.title === '' || (book.title && book.title.toLowerCase().includes(searchFilters.title.toLowerCase()))) &&
+                    (searchFilters.author === '' || (book.author && book.author.toLowerCase().includes(searchFilters.author.toLowerCase()))) &&
+                    (searchFilters.category === '' || (book.category && book.category.toLowerCase().includes(searchFilters.category.toLowerCase()))) &&
+                    (searchFilters.status === '' || book.status === searchFilters.status)
+                );
+            }));
 
             // Reset the editing state
             setEditingBook(null);
@@ -85,26 +129,41 @@ const BookInventory = () => {
         if (window.confirm('Are you sure you want to remove this book?')) {
             try {
                 await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/${bookId}`);
-                setBooks(books.filter(book => book._id !== bookId));
+                const updatedBooks = books.filter(book => book._id !== bookId);
+                setBooks(updatedBooks);
+                setFilteredBooks(updatedBooks.filter((book) => {
+                    return (
+                        (searchFilters.bookId === '' || (book.bookId && book.bookId.toLowerCase().includes(searchFilters.bookId.toLowerCase()))) &&
+                        (searchFilters.title === '' || (book.title && book.title.toLowerCase().includes(searchFilters.title.toLowerCase()))) &&
+                        (searchFilters.author === '' || (book.author && book.author.toLowerCase().includes(searchFilters.author.toLowerCase()))) &&
+                        (searchFilters.category === '' || (book.category && book.category.toLowerCase().includes(searchFilters.category.toLowerCase()))) &&
+                        (searchFilters.status === '' || book.status === searchFilters.status)
+                    );
+                }));
+                setSuccess('Book removed successfully');
+                setTimeout(() => setSuccess(''), 3000);
             } catch (error) {
                 setError('Error removing book');
+                setTimeout(() => setError(''), 3000);
             }
         }
     };
 
     const handleSearch = async () => {
-        if (!searchId.trim()) {
+        if (!searchFilters.bookId.trim()) {
             setError('Please enter a book ID');
+            setTimeout(() => setError(''), 3000);
             return;
         }
     
         try {
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/search?bookId=${searchId}`);
-            setSearchResults(response.data);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/books/search?bookId=${searchFilters.bookId}`);
+            setFilteredBooks(response.data ? [response.data] : []);
             setError('');
         } catch (error) {
-            setSearchResults(null);
+            setFilteredBooks([]);
             setError(error.response?.data?.message || 'Book not found');
+            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -209,18 +268,10 @@ const BookInventory = () => {
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center justify-between">
                     <div className="flex items-center">
                         <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 01-1-1V9a1 1 0 112 0v4a1 1 0 01-1 1z" clipRule="evenodd" />
                         </svg>
                         <span>{error}</span>
                     </div>
-                    <button
-                        onClick={() => setError('')}
-                        className="text-red-700 hover:text-red-900"
-                    >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                    </button>
                 </div>
             )}
 
@@ -232,19 +283,11 @@ const BookInventory = () => {
                         </svg>
                         <span>{success}</span>
                     </div>
-                    <button
-                        onClick={() => setSuccess('')}
-                        className="text-green-700 hover:text-green-900"
-                    >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                    </button>
                 </div>
             )}
 
             {/* Add/Edit Book Form */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
                 <h2 className="text-xl font-semibold mb-4">
                     {editingBook ? 'Edit Book' : 'Add New Book'}
                 </h2>
@@ -333,56 +376,77 @@ const BookInventory = () => {
                 </form>
             </div>
 
-            {/* Search Book by ID */}
+            {/* Search Books */}
             <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 className="text-xl font-semibold mb-4">Search Book by ID</h2>
-                <div className="flex gap-4">
+                <h2 className="text-xl font-semibold mb-4">Search Books</h2>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                     <input
                         type="text"
-                        placeholder="Enter Book ID"
-                        value={searchId}
-                        onChange={(e) => setSearchId(e.target.value)}
-                        className="p-2 border rounded flex-1"
+                        name="bookId"
+                        placeholder="Search by Book ID"
+                        value={searchFilters.bookId}
+                        onChange={handleSearchChange}
+                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     />
-                    <button
-                        onClick={handleSearch}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Search by Title"
+                        value={searchFilters.title}
+                        onChange={handleSearchChange}
+                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <input
+                        type="text"
+                        name="author"
+                        placeholder="Search by Author"
+                        value={searchFilters.author}
+                        onChange={handleSearchChange}
+                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <input
+                        type="text"
+                        name="category"
+                        placeholder="Search by Category"
+                        value={searchFilters.category}
+                        onChange={handleSearchChange}
+                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <select
+                        name="status"
+                        value={searchFilters.status}
+                        onChange={handleSearchChange}
+                        className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     >
-                        Search
-                    </button>
+                        <option value="">All Status</option>
+                        <option value="available">Available</option>
+                        <option value="issued">Issued</option>
+                    </select>
                 </div>
-                {searchResults && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded">
-                        <h3 className="font-semibold">{searchResults.title}</h3>
-                        <p>ID: {searchResults.bookId}</p>
-                        <p>Author: {searchResults.author}</p>
-                        <p>Status: {searchResults.status}</p>
-                    </div>
-                )}
             </div>
 
             {/* Books List */}
             <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Book List</h2>
+                <h2 className="text-xl font-semibold mb-4">Books List ({filteredBooks.length})</h2>
                 {loading ? (
-                    <p>Loading books...</p>
+                    <p>Loading...</p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-2">Book ID</th>
-                                    <th className="px-4 py-2">Title</th>
-                                    <th className="px-4 py-2">Author</th>
-                                    <th className="px-4 py-2">Category</th>
-                                    <th className="px-4 py-2">Status</th>
-                                    <th className="px-4 py-2">Location</th>
-                                    <th className="px-4 py-2">Issued To</th>
-                                    <th className="px-4 py-2">Actions</th>
+                        <table className="w-full table-auto">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="px-4 py-2 text-left">Book ID</th>
+                                    <th className="px-4 py-2 text-left">Title</th>
+                                    <th className="px-4 py-2 text-left">Author</th>
+                                    <th className="px-4 py-2 text-left">Category</th>
+                                    <th className="px-4 py-2 text-left">Status</th>
+                                    <th className="px-4 py-2 text-left">Location</th>
+                                    <th className="px-4 py-2 text-left">Issued To</th>
+                                    <th className="px-4 py-2 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {books.map((book) => (
+                                {filteredBooks.map((book) => (
                                     <tr key={book._id} className="border-t">
                                         <td className="px-4 py-2">{book.bookId}</td>
                                         <td className="px-4 py-2">{book.title}</td>
@@ -403,27 +467,27 @@ const BookInventory = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setEditingBook(book)}
-                                                    className="text-blue-600 hover:text-blue-800 px-2 py-1 text-sm"
+                                                    className="text-blue-600 hover:text-blue-800"
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     onClick={() => handleRemoveBook(book._id)}
-                                                    className="text-red-600 hover:text-red-800 px-2 py-1 text-sm"
+                                                    className="text-red-600 hover:text-red-800"
                                                 >
-                                                    Remove
+                                                    Delete
                                                 </button>
                                                 {book.status === 'available' ? (
                                                     <button
                                                         onClick={() => openIssueModal(book)}
-                                                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                                                        className="text-green-600 hover:text-green-800"
                                                     >
                                                         Issue
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => openReturnModal(book)}
-                                                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
+                                                        className="text-purple-600 hover:text-purple-800"
                                                     >
                                                         Return
                                                     </button>
@@ -438,7 +502,7 @@ const BookInventory = () => {
                 )}
             </div>
 
-            {/* Issue Book Modal */}
+            {/* Issue Modal */}
             {showIssueModal && selectedBook && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">

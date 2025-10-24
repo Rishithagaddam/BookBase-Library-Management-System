@@ -25,94 +25,169 @@ router.post('/login', authController.login);
 
 // POST /api/auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
-
     try {
-        // 1. Find the faculty by email
+        const { email } = req.body;
+        console.log('Received forgot password request for:', email);
+        
+        // 1. Check if faculty exists with this email
         const faculty = await Faculty.findOne({ email });
         if (!faculty) {
-            return res.status(404).json({ message: 'Faculty not found' });
+            console.log('No account found with email:', email);
+            return res.status(404).json({ 
+                success: false, 
+                message: 'No account found with this email address' 
+            });
         }
 
-        // 2. Generate a plain reset token and hash it
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const hashedToken = await bcrypt.hash(resetToken, 10);
-
-        // 3. Save the hashed token and expiration time
-        faculty.resetPasswordToken = hashedToken;
-        faculty.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration time
-        await faculty.save();
-        console.log('Faculty updated successfully:', faculty);
-
-        // 4. Send email with plain reset token in URL
-        const resetLink = `http://:5173/reset-password/${resetToken}`;
+        // 2. Generate reset token - use crypto in a safer way
+        let resetToken;
+        try {
+            resetToken = crypto.randomBytes(20).toString('hex');
+            console.log('Generated reset token successfully');
+        } catch (err) {
+            console.error('Error generating token:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error generating reset token' 
+            });
+        }
         
+        // 3. Save reset token to database (expires in 1 hour)
+        faculty.resetPasswordToken = resetToken;
+        faculty.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        
+        try {
+            await faculty.save();
+            console.log('Reset token saved to faculty record');
+        } catch (err) {
+            console.error('Error saving token to faculty:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error saving reset token' 
+            });
+        }
+
+        // 4. Create transporter with proper configuration
+        // Update to use a more reliable service configuration
         const transporter = nodemailer.createTransport({
-            service: 'Gmail',
+            service: 'gmail',
             auth: {
-                faculty: 'rishithagaddam79@gmail.com',
-                pass: 'zxnj pjun qhtp nlhn' // App password
+                user: 'rishithagaddam79@gmail.com',
+                pass: 'zxnj pjun qhtp nlhn'  // Keep your app password
+            },
+            tls: {
+                rejectUnauthorized: false // For development only - remove in production
             }
         });
 
+        // 5. Send email with reset link (use localhost during development)
+        const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+        
         const mailOptions = {
-            from: 'no-reply@example.com',
-            to: faculty.email,
-            subject: 'Password Reset',
-            text: `You requested a password reset. Click the link to reset your password: ${resetLink}`
+            from: '"BookBase Library" <rishithagaddam79@gmail.com>',
+            to: email,
+            subject: 'Password Reset Request - BookBase Library',
+            html: `
+                <h2>Password Reset Request</h2>
+                <p>Dear ${faculty.facultyname},</p>
+                <p>You have requested to reset your password for BookBase Library Management System.</p>
+                <p>Click the link below to reset your password:</p>
+                <a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you didn't request this reset, please ignore this email.</p>
+                <br>
+                <p>Best regards,<br>BookBase Library Team</p>
+            `
         };
 
-        await transporter.sendMail(mailOptions);
+        // Send the email and handle response properly
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Password reset email sent to:', email);
+            
+            res.status(200).json({ 
+                success: true, 
+                message: 'Password reset email sent' 
+            });
+        } catch (err) {
+            console.error('Error sending email:', err);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error sending reset email. Please try again.',
+                error: err.message
+            });
+        }
 
-        res.status(200).json({ message: 'Password reset email sent' });
     } catch (error) {
-        console.error('Error during forgot password:', error);
-        res.status(500).json({ message: 'Failed to send password reset email' });
+        console.error('Forgot password error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error sending reset email. Please try again.',
+            error: error.message 
+        });
     }
 });
 
+// Update the reset-password endpoint
 router.post('/reset-password/:token', async (req, res) => {
-    const { token } = req.params;  // Token from URL
-    const { password } = req.body; // New password from request body
-
     try {
-        // Ensure password is provided
+        const { token } = req.params;
+        const { password } = req.body;
+
+        console.log('Reset password request for token:', token);
+
+        // 1. Validate input
         if (!password) {
-            return res.status(400).json({ message: 'Password is required' });
+            return res.status(400).json({
+                success: false,
+                message: 'Password is required'
+            });
         }
 
-        // Find the faculty whose reset token matches and is not expired
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters long'
+            });
+        }
+
+        // 2. Find faculty with valid reset token and not expired
         const faculty = await Faculty.findOne({
-            resetPasswordExpires: { $gt: Date.now() }  // Token should not be expired
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
         });
 
-        // If no faculty is found or the token is invalid/expired
         if (!faculty) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
+            console.log('Invalid or expired token');
+            return res.status(400).json({
+                success: false,
+                message: 'Password reset token is invalid or has expired'
+            });
         }
 
-        // Compare the provided token with the hashed token stored in the database
-        const isMatch = await bcrypt.compare(token, faculty.resetPasswordToken);
+        console.log('Found faculty with valid token:', faculty.facultyname);
 
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
-        }
-
-        // Hash and save the new password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // 3. Update password (the pre-save hook will hash it)
         faculty.password = password;
-
-        // Clear reset token and expiry
         faculty.resetPasswordToken = undefined;
         faculty.resetPasswordExpires = undefined;
+        
+        await faculty.save();
 
-        await faculty.save();  // Save updated faculty to the database
-        console.log(faculty);
+        console.log('Password reset successful for:', faculty.facultyname);
 
-        res.status(200).json({ message: 'Password reset successful' });
+        res.status(200).json({
+            success: true,
+            message: 'Password reset successful'
+        });
+
     } catch (error) {
-        console.error('Error during password reset:', error);
-        res.status(500).json({ message: 'Failed to reset password' });
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resetting password. Please try again.',
+            error: error.message
+        });
     }
 });
 

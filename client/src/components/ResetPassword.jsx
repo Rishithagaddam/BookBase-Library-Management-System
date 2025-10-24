@@ -15,24 +15,37 @@ const ResetPassword = () => {
         setMessage('');
         setError('');
 
-        // Ensure passwords match
+        // Validate passwords
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
         }
 
-        try {
-            // Send the password reset request to the backend
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/reset-password/${token}`, {
-                password
-            });
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            return;
+        }
 
-            if (response.data.message === 'Password reset successful') {
-                setMessage('Password reset successful. Redirecting to login...');
-                setTimeout(() => navigate('/login'), 3000); // Redirect after 3 seconds
+        try {
+            console.log('Sending reset password request');
+            const response = await axios.post(
+                `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/reset-password/${token}`,
+                { password }
+            );
+
+            console.log('Reset password response:', response.data);
+            
+            if (response.data.success) {
+                setMessage('Password has been reset successfully. Redirecting to login...');
+                
+                // Redirect to login page after 3 seconds
+                setTimeout(() => {
+                    navigate('/login');
+                }, 3000);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to reset password');
+            console.error('Reset password error:', err);
+            setError(err.response?.data?.message || 'Error resetting password. Please try again.');
         }
     };
 

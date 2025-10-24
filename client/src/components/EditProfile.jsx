@@ -11,9 +11,9 @@ const EditProfile = () => {
         facultyId: '',
         email: '',
         mobile: '',
-        profileImage: '', // Add profileImage field
     });
     const [isEditing, setIsEditing] = useState(false);
+    const [originalFormData, setOriginalFormData] = useState({}); // Store original data for cancel operation
     const [showPasswordChange, setShowPasswordChange] = useState(false);
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
@@ -28,30 +28,42 @@ const EditProfile = () => {
         confirm: false
     });
     const [showToast, setShowToast] = useState(false);
+    const [updateSuccess, setUpdateSuccess] = useState(false);
 
     useEffect(() => {
+        // Load user data
         const fetchUserDetails = async () => {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
                 try {
+                    // Get the user data from the API
                     const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${user.facultyId}`);
-                    setFormData({
-                        username: response.data.facultyname, // Changed from username to facultyname
-                        facultyId: response.data.facultyId,
-                        email: response.data.email,
+                    
+                    // Create userData object from response
+                    const userData = {
+                        username: response.data.facultyname || '',
+                        facultyId: response.data.facultyId || '',
+                        email: response.data.email || '',
                         mobile: response.data.mobile || '',
                         profileImage: response.data.profileImage || '',
-                    });
+                    };
                     
-                    // Fix the URL format for the profile photo
+                    // Set both formData and originalFormData with the same values
+                    setFormData(userData);
+                    setOriginalFormData({...userData});
+                    
+                    // Set profile photo if it exists
                     if (response.data.profileImage) {
                         setProfilePhoto(`${import.meta.env.VITE_BACKEND_API_URL}/${response.data.profileImage}`);
                     }
+                    
+                    console.log('Profile data loaded:', userData);
                 } catch (error) {
-                    console.error('Error fetching user details:', error.response?.data?.message || error.message);
+                    console.error('Error fetching user details:', error.response?.data || error.message);
                 }
             }
         };
+        
         fetchUserDetails();
     }, []);
 
@@ -63,13 +75,13 @@ const EditProfile = () => {
     const handlePhotoUpload = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const formData = new FormData();
-            formData.append('profileImage', file);
+            const photoFormData = new FormData(); // Renamed from formData to photoFormData
+            photoFormData.append('profileImage', file);
 
             try {
                 const response = await axios.put(
                     `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}/image`,
-                    formData,
+                    photoFormData,
                     {
                         headers: {
                             'Content-Type': 'multipart/form-data',
@@ -84,22 +96,68 @@ const EditProfile = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.put(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}`, {
-                facultyname: formData.username, // Changed from username to facultyname
+    // Update handleSubmit function to only display success message on actual submission
+    // Update this section in your component - around line 95-145
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Check if we're actually in edit mode and have changes before submitting
+    if (!isEditing) {
+        console.log('Not in edit mode, ignoring submit');
+        return;
+    }
+    
+    console.log('Form submitted', formData);
+    console.log('Original data', originalFormData);
+    
+    try {
+        // Make API request to update profile
+        console.log('Sending update to:', `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}`);
+        console.log('With data:', {
+            facultyname: formData.username,
+            email: formData.email,
+            mobile: formData.mobile,
+        });
+        
+        const response = await axios.put(
+            `${import.meta.env.VITE_BACKEND_API_URL}/api/auth/profile/${formData.facultyId}`,
+            {
+                facultyname: formData.username,
                 email: formData.email,
                 mobile: formData.mobile,
-            });
-            if (response.status === 200) {
-                console.log('Profile updated successfully:', response.data);
-                setIsEditing(false);
             }
-        } catch (error) {
-            console.error('Error updating profile:', error.response?.data?.message || error.message);
+        );
+        
+        console.log('Update response:', response.data);
+        
+        if (response.status === 200) {
+            // Update local storage
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                user.facultyname = formData.username;
+                user.email = formData.email;
+                user.mobile = formData.mobile;
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+            
+            // Update original data to match current data
+            setOriginalFormData({...formData});
+            setIsEditing(false);
+            setUpdateSuccess(true);
+            
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                setUpdateSuccess(false);
+            }, 3000);
         }
-    };
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        console.error('Response data:', error.response?.data);
+        console.error('Error message:', error.message);
+        // Show error message to user
+        alert(`Failed to update profile: ${error.response?.data?.message || error.message}`);
+    }
+};
 
     const handlePasswordChange = (e) => {
         const { name, value } = e.target;
@@ -112,7 +170,23 @@ const EditProfile = () => {
             [field]: !prev[field]
         }));
     };
+    const handleEditClick = (e) => {
+        e.preventDefault(); // Add this to prevent any form submission
+        console.log('Edit button clicked');
+        console.log('Current form data:', formData);
+        console.log('Current isEditing state:', isEditing);
+        setIsEditing(true);
+        // Make a copy of the current data as originalFormData if it's not already set
+        if (Object.keys(originalFormData).length === 0) {
+            setOriginalFormData({...formData});
+        }
+    };
 
+    const handleCancelClick = () => {
+        // Restore original data
+        setFormData({...originalFormData});
+        setIsEditing(false);
+    };
     const showSuccessToast = () => {
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -169,7 +243,6 @@ const EditProfile = () => {
             )}
 
             <div className="p-6">
-                {/* <h1 className="text-3xl font-bold mb-6">Edit Profile</h1> */}
                 <div className="flex justify-center items-center flex-1 p-6">
                     <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-2xl border border-gray-100">
                        
@@ -180,7 +253,21 @@ const EditProfile = () => {
                             <p className="mt-2 mb-2">Your profile information</p>
                         </div>
                         
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form 
+    onSubmit={handleSubmit} 
+    className="space-y-6"
+    onClick={(e) => {
+        // Prevent form submission when clicking on the form
+        if (e.target.tagName === 'FORM') {
+            e.preventDefault();
+        }
+    }}
+>
+                            {updateSuccess && (
+                            <div className="bg-green-100 text-green-600 p-3 rounded mb-4 animate-pulse">
+                                Profile updated successfully!
+                            </div>
+                        )}
                             {/* Profile Photo */}
                             <div className="flex flex-col items-center mb-8">
                                 <div className="relative group">
@@ -296,8 +383,8 @@ const EditProfile = () => {
                                             Change Password
                                         </button>
                                         <button
-                                            type="button"
-                                            onClick={() => setIsEditing(true)}
+                                            type="button" // Ensure this is type="button" not "submit"
+                                            onClick={handleEditClick}
                                             className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-md transition-all duration-300 font-medium"
                                         >
                                             Edit Profile
@@ -307,7 +394,7 @@ const EditProfile = () => {
                                     <>
                                         <button
                                             type="button"
-                                            onClick={() => setIsEditing(false)}
+                                            onClick={handleCancelClick}
                                             className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-300 font-medium"
                                         >
                                             Cancel
@@ -428,6 +515,13 @@ const EditProfile = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Debug info */}
+                        {import.meta.env.DEV && (
+    <div className="bg-yellow-100 p-2 mb-4 text-xs">
+        <p>Debug - Edit mode: {isEditing ? 'ON' : 'OFF'}</p>
+    </div>
+)}
                     </div>
                 </div>
             </div>

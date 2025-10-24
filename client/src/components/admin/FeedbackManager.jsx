@@ -125,7 +125,7 @@ const FeedbackManager = () => {
                                         <h3 className="text-lg font-semibold">{feedback.title}</h3>
                                         <p className="text-sm text-gray-600">
                                             Category: {feedback.category} | 
-                                            From: {feedback.facultyName} |
+                                            From: {feedback.facultyname} |
                                             Date: {new Date(feedback.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>

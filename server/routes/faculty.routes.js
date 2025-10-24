@@ -38,7 +38,7 @@ router.get('/dashboard/:facultyId', async (req, res) => {
 
         res.json({
             facultyId: faculty.facultyId,
-            facultyName: faculty.facultyName,
+            facultyname: faculty.facultyname,
             totalBooksIssued: faculty.totalBooksIssued,
             currentlyIssuedBooks: faculty.currentlyIssuedBooks,
         });
@@ -241,7 +241,7 @@ router.post('/forum/posts', async (req, res) => {
 
         // Populate the postedBy field before sending response
         const populatedPost = await ForumPost.findById(post._id)
-            .populate('postedBy', 'facultyName facultyId');
+            .populate('postedBy', 'facultyname facultyId');
 
         res.status(201).json({ 
             message: 'Post created successfully', 
@@ -273,7 +273,7 @@ router.get('/forum/posts', async (req, res) => {
         };
 
         const posts = await ForumPost.find(query)
-            .populate('postedBy', 'facultyName facultyId')
+            .populate('postedBy', 'facultyname facultyId')
             .sort(sortOptions[sort])
             .lean();
 
@@ -341,8 +341,8 @@ router.put('/forum/posts/:postId/like', async (req, res) => {
 
         // Return the updated post with populated likes
         const updatedPost = await ForumPost.findById(postId)
-            .populate('postedBy', 'facultyName facultyId')
-            .populate('likes', 'facultyName facultyId');
+            .populate('postedBy', 'facultyname facultyId')
+            .populate('likes', 'facultyname facultyId');
 
         res.json({
             message: likeIndex > -1 ? 'Post unliked successfully' : 'Post liked successfully',

@@ -11,12 +11,20 @@ const Dashboard = () => {
         dueBooks: []
     });
     const [broadcasts, setBroadcasts] = useState([]);
+    const [hiddenBroadcasts, setHiddenBroadcasts] = useState(() => {
+        const saved = localStorage.getItem('hiddenBroadcasts');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         fetchDashboardData();
     }, []);
+
+    useEffect(() => {
+        localStorage.setItem('hiddenBroadcasts', JSON.stringify([...hiddenBroadcasts]));
+    }, [hiddenBroadcasts]);
 
     const fetchDashboardData = async () => {
         try {
@@ -32,7 +40,7 @@ const Dashboard = () => {
                 axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/working-hours`),
                 axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/admin/settings/holidays`),
                 axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/dashboard/${user.facultyId}`),
-                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcasts`)
+                axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/broadcasts/dashboard`) // Updated to use dashboard-specific endpoint
             ]);
 
             setLibraryInfo({
@@ -53,6 +61,14 @@ const Dashboard = () => {
         }
     };
 
+    const hideBroadcast = (broadcastId) => {
+        setHiddenBroadcasts(prev => {
+            const updated = new Set([...prev]);
+            updated.add(broadcastId);
+            return updated;
+        });
+    };
+
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
@@ -66,21 +82,32 @@ const Dashboard = () => {
             )}
 
             {/* Important Broadcasts */}
-            {broadcasts.length > 0 && (
+            {broadcasts.length > 0 && broadcasts.filter(b => !hiddenBroadcasts.has(b._id)).length > 0 && (
                 <div className="bg-yellow-50 p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-semibold mb-4 text-yellow-800">
                         📢 Important Announcements
                     </h2>
                     <div className="space-y-4">
-                        {broadcasts.map(broadcast => (
+                        {broadcasts
+                            .filter(broadcast => !hiddenBroadcasts.has(broadcast._id))
+                            .map(broadcast => (
                             <div
                                 key={broadcast._id}
-                                className={`p-4 rounded-lg ${
+                                className={`p-4 rounded-lg relative ${
                                     broadcast.priority === 'high'
                                         ? 'bg-red-100 border-l-4 border-red-500'
                                         : 'bg-white'
                                 }`}
                             >
+                                <button 
+                                    onClick={() => hideBroadcast(broadcast._id)}
+                                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                                    title="Remove this announcement"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
                                 <h3 className="font-semibold text-lg">{broadcast.title}</h3>
                                 <p className="text-gray-700 mt-1">{broadcast.content}</p>
                                 <div className="text-sm text-gray-500 mt-2">

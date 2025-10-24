@@ -24,26 +24,56 @@ const FacultyForum = () => {
         const fetchPosts = async () => {
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
+                
                 const params = new URLSearchParams({
                     ...(selectedCategory && { category: selectedCategory }),
                     ...(searchQuery && { search: searchQuery }),
                     sort: sortBy
                 });
 
-                const response = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/posts?${params}`);
-                setPosts(response.data);
+                console.log('Fetching posts with params:', params.toString());
+                
+                const response = await axios.get(
+                    `${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/forum/posts?${params}`
+                );
+                
+                console.log('Posts received:', response.data);
+                
+                // Filter out any posts with null postedBy field or add a default value
+                const validPosts = response.data.map(post => {
+                    if (!post.postedBy) {
+                        // Add a default postedBy object
+                        return {
+                            ...post,
+                            postedBy: { facultyname: 'Unknown User', facultyId: 'unknown' }
+                        };
+                    }
+                    return post;
+                });
+                
+                setPosts(validPosts || []);
 
-                // Set initial liked posts
+                // Set initial liked posts safely
                 if (user) {
                     const initialLikedPosts = new Set(
-                        response.data
-                            .filter(post => post.likes.some(like => like.facultyId === user.facultyId))
+                        validPosts
+                            .filter(post => 
+                                post.likes && 
+                                Array.isArray(post.likes) &&
+                                post.likes.some(like => 
+                                    like && 
+                                    ((typeof like === 'object' && like.facultyId === user.facultyId) || 
+                                    like === user.facultyId)
+                                )
+                            )
                             .map(post => post._id)
                     );
                     setLikedPosts(initialLikedPosts);
                 }
+                
             } catch (error) {
-                setError('Failed to fetch posts');
+                console.error('Error fetching posts:', error);
+                setError('Failed to fetch posts: ' + (error.message || 'Unknown error'));
             }
         };
 
@@ -274,7 +304,7 @@ const FacultyForum = () => {
                         )}
                         <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
                         <div className="text-sm text-gray-600 mb-2">
-                            Posted by {post.postedBy.facultyName} in {post.category}
+                            Posted by {post.postedBy ? post.postedBy.facultyname : 'Unknown User'} in {post.category}
                         </div>
                         <p className="mb-4">{post.content}</p>
                         <div className="flex flex-wrap gap-2 mb-4">
@@ -310,7 +340,8 @@ const FacultyForum = () => {
                                 <div key={reply._id} className="bg-gray-50 p-3 rounded mb-2">
                                     <p>{reply.content}</p>
                                     <div className="text-sm text-gray-600">
-                                        Replied by {reply.repliedBy.facultyName}
+                                        Replied by {reply.repliedBy && reply.repliedBy.facultyname ? 
+                                            reply.repliedBy.facultyname : 'Unknown User'}
                                     </div>
                                 </div>
                             ))}

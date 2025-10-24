@@ -12,15 +12,19 @@ const ForgotPassword = () => {
         setError('');
 
         try {
+            console.log('Sending forgot password request for:', email);
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/forgot-password`, {
                 email
             });
 
-            if (response.data.message === 'Password reset email sent') {
-                setMessage('Password reset email sent. Please check your inbox.');
+            console.log('Forgot password response:', response.data);
+            
+            if (response.data.success) {
+                setMessage('Password reset email sent. Please check your inbox and spam folder.');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send password reset email');
+            console.error('Forgot password error:', err);
+            setError(err.response?.data?.message || 'Failed to send password reset email. Please try again.');
         }
     };
 

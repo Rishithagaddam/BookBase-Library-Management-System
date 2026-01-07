@@ -22,12 +22,6 @@ const HomePage = () => {
                     >
                         Login
                     </button>
-                    <button
-                        onClick={() => navigate('/signup')}
-                        className="px-6 py-3 bg-purple-600 text-white rounded-lg shadow-lg hover:bg-purple-700 hover:scale-105 transition duration-300"
-                    >
-                        Sign Up
-                    </button>
                 </div>
             </div>
         </div>

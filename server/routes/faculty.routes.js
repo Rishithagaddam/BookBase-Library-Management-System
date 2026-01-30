@@ -2,23 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Faculty = require('../models/faculty');
 const Book = require('../models/book');
-const { verifyToken } = require('../middleware/auth.middleware'); // Import verifyToken middleware
 const Feedback = require('../models/feedback');
 const Wishlist = require('../models/wishlist');
 const ForumPost = require('../models/forumPost');
-
-// Middleware to check if user is faculty
-const isFaculty = async (req, res, next) => {
-    try {
-        const faculty = await Faculty.findOne({ facultyId: req.user.facultyId });
-        if (!faculty) {
-            return res.status(403).json({ message: 'Access denied. Faculty only.' });
-        }
-        next();
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
 
 // Get faculty dashboard data
 router.get('/dashboard/:facultyId', async (req, res) => {
@@ -33,8 +19,6 @@ router.get('/dashboard/:facultyId', async (req, res) => {
         if (!faculty) {
             return res.status(404).json({ message: 'Faculty not found' });
         }
-
-        console.log('Faculty found:', faculty); // Add this for debugging
 
         res.json({
             facultyId: faculty.facultyId,
@@ -61,104 +45,10 @@ router.get('/books/available', async (req, res) => {
 // Get all books
 router.get('/books', async (req, res) => {
     try {
-        console.log('Fetching all books...');
         const allBooks = await Book.find();
-        console.log('Books fetched:', allBooks);
         res.json(allBooks);
     } catch (error) {
         console.error('Error fetching books:', error.message);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-});
-
-// Issue a book
-router.put('/books/issue/:bookId', async (req, res) => {
-    try {
-        const { bookId } = req.params;
-        const { issuedDate, facultyId } = req.body;
-
-        // Find the book using MongoDB _id
-        const book = await Book.findById(bookId);
-        if (!book) {
-            return res.status(404).json({ message: 'Book not found' });
-        }
-
-        if (book.status === 'issued') {
-            return res.status(400).json({ message: 'Book is already issued' });
-        }
-
-        // Update book status
-        book.status = 'issued';
-        book.issuedDate = issuedDate || new Date();
-        await book.save();
-
-        // Update faculty's currentlyIssuedBooks
-        const faculty = await Faculty.findOne({ facultyId });
-        if (!faculty) {
-            return res.status(404).json({ message: 'Faculty not found' });
-        }
-
-        faculty.currentlyIssuedBooks.push(book._id);
-        faculty.totalBooksIssued += 1;
-        await faculty.save();
-
-        res.status(200).json({ 
-            message: 'Book issued successfully', 
-            book,
-            faculty: {
-                totalBooksIssued: faculty.totalBooksIssued,
-                currentlyIssuedBooks: faculty.currentlyIssuedBooks
-            }
-        });
-    } catch (error) {
-        console.error('Error issuing book:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-});
-
-// Return a book
-router.put('/books/return/:bookId', async (req, res) => {
-    try {
-        const { bookId } = req.params;
-        const { facultyId } = req.body;
-
-        // Find the book using MongoDB _id
-        const book = await Book.findById(bookId);
-        if (!book) {
-            return res.status(404).json({ message: 'Book not found' });
-        }
-
-        if (book.status !== 'issued') {
-            return res.status(400).json({ message: 'Book is not currently issued' });
-        }
-
-        // Update book status
-        book.status = 'available';
-        book.issuedDate = null;
-        await book.save();
-
-        // Remove book from faculty's currentlyIssuedBooks
-        const faculty = await Faculty.findOne({ facultyId });
-        if (!faculty) {
-            return res.status(404).json({ message: 'Faculty not found' });
-        }
-
-        faculty.currentlyIssuedBooks = faculty.currentlyIssuedBooks.filter(
-            (issuedBookId) => issuedBookId.toString() !== bookId
-        );
-        faculty.totalBooksIssued -= 1;
-        await faculty.save();
-
-        res.status(200).json({ 
-            message: 'Book returned successfully',
-            book,
-            faculty: {
-                totalBooksIssued: faculty.totalBooksIssued,
-                currentlyIssuedBooks: faculty.currentlyIssuedBooks
-            }
-        });
-    } catch (error) {
-        console.error('Error returning book:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });

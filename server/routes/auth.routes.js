@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 // Replace with your Faculty model
 const Faculty = require('../models/faculty'); // Use the Faculty model
 const router = express.Router();
-const authController = require('../controllers/auth.controller');
+const authController = require('../controllers/authController');
 const multer = require('multer');
 const path = require('path');
 

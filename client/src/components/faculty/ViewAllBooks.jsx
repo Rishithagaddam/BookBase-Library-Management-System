@@ -7,8 +7,6 @@ const ViewAllBooks = () => {
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [booksPerPage, setBooksPerPage] = useState(15); // Updated to show 15 books per page
-    const [selectedBook, setSelectedBook] = useState(null); // For modal details
-    const [showModal, setShowModal] = useState(false); // For issue confirmation modal
     const [searchFilters, setSearchFilters] = useState({
         bookId: '',
         author: '',
@@ -79,45 +77,6 @@ const ViewAllBooks = () => {
         setFilteredBooks(filtered);
         setCurrentPage(1); // Reset to the first page after filtering
     }, [searchFilters, books]);
-
-    // Handle issue confirmation
-    const handleIssueBook = async () => {
-        try {
-            // Get user from localStorage
-            const user = JSON.parse(localStorage.getItem('user'));
-            
-            const response = await axios.put(
-                `${import.meta.env.VITE_BACKEND_API_URL}/api/faculty/books/issue/${selectedBook._id}`, // Changed from bookId to _id
-                {
-                    issuedDate: new Date(),
-                    facultyId: user.facultyId // Add facultyId to the request
-                }
-            );
-
-            if (response.status === 200) {
-                alert('Book issued successfully');
-                // Update the book's status locally
-                setBooks((prevBooks) =>
-                    prevBooks.map((book) =>
-                        book._id === selectedBook._id
-                            ? { ...book, status: 'issued', issuedDate: new Date() }
-                            : book
-                    )
-                );
-                setFilteredBooks((prevBooks) =>
-                    prevBooks.map((book) =>
-                        book._id === selectedBook._id
-                            ? { ...book, status: 'issued', issuedDate: new Date() }
-                            : book
-                    )
-                );
-                setShowModal(false);
-            }
-        } catch (error) {
-            console.error('Error issuing book:', error.response?.data?.message || error.message);
-            alert(error.response?.data?.message || 'Failed to issue book');
-        }
-    };
 
     // Close sidebar when displaying the table
     useEffect(() => {
@@ -249,30 +208,6 @@ const ViewAllBooks = () => {
                     >
                         &gt;
                     </button>
-                </div>
-            )}
-
-            {/* Issue Confirmation Modal */}
-            {showModal && selectedBook && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                        <h2 className="text-xl font-bold mb-4">Confirm Issue</h2>
-                        <p>Are you sure you want to issue <strong>{selectedBook.title}</strong>?</p>
-                        <div className="mt-4 flex justify-end space-x-4">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleIssueBook}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                                Yes, Issue
-                            </button>
-                        </div>
-                    </div>
                 </div>
             )}
         </div>

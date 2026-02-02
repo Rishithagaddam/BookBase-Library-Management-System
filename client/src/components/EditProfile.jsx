@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import Header from './Header';
+import { useState, useEffect } from 'react';
 import { FaUserCircle, FaCamera, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import '../App.css';

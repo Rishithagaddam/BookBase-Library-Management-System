@@ -514,13 +514,6 @@ const handleSubmit = async (e) => {
                                 </div>
                             </div>
                         )}
-
-                        {/* Debug info */}
-                        {import.meta.env.DEV && (
-    <div className="bg-yellow-100 p-2 mb-4 text-xs">
-        <p>Debug - Edit mode: {isEditing ? 'ON' : 'OFF'}</p>
-    </div>
-)}
                     </div>
                 </div>
             </div>

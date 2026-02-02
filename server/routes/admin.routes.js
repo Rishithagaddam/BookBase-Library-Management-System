@@ -99,7 +99,7 @@ router.get('/faculty', async (req, res) => {
 // Add new faculty
 router.post('/faculty', async (req, res) => {
     try {
-        const { facultyId, facultyname, email, role, password = 'vnrvjiet' } = req.body;
+        const { facultyId, facultyname, email, role, password = 'vnrvjiet@123' } = req.body;
 
         // Check for required fields
         if (!facultyId || !facultyname || !email) {

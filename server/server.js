@@ -12,8 +12,7 @@ connectDB();
 app.use(cors({
     origin: [
         'http://localhost:5173',
-        'http://localhost:3000',
-        'https://bookbase-library-management-system-client.onrender.com'
+        'http://localhost:3000'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

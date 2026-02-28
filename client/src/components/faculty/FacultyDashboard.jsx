@@ -5,7 +5,6 @@ import Header from '../Header';
 import Dashboard from './Dashboard';
 import ViewAllBooks from './ViewAllBooks';
 import MyIssuedBooks from './MyIssuedBooks';
-import DueReminders from './DueReminders';
 import ExploreArchives from './ExploreArchives';
 import EditProfile from '../EditProfile';
 import Settings from './Settings';
@@ -22,7 +21,6 @@ const FacultyDashboard = () => {
         { name: '🏠 Dashboard', component: <Dashboard /> },
         { name: '📘 View All Books', component: <ViewAllBooks /> },
         { name: '📄 My Issued Books', component: <MyIssuedBooks /> },
-        { name: '⏰ Due Reminders', component: <DueReminders /> },
         { name: '📁 Explore Archives', component: <ExploreArchives /> },
         { name: '👤 Edit Profile', component: <EditProfile /> },
         { name: '⚙️ Settings', component: <Settings /> },
